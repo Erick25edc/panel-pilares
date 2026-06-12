@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de PILARES CDMX</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Font Awesome para el icono -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 2000;
+            font-size: 16px;
+        }
+        .search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .search-box input {
+            width: 220px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .suggestions {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            display: none;
+        }
+        .suggestions div {
+            padding: 6px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Botón de regreso al Dashboard */
+        .btn-volver {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: bold;
+            z-index: 1500;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .btn-volver:hover {
+            background: #f0f2f5;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de regreso al Dashboard -->
+    <a href="/" class="btn-volver">
+        <i class="fas fa-chart-line"></i> Ver Dashboard
+    </a>
+    
+    <div id="map"></div>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Buscar PILARES o Alcaldía...">
+        <div id="suggestions" class="suggestions"></div>
+    </div>
+    <div class="info" id="info">PILARES CDMX - Inicializando...</div>
+    <div class="loading" id="loading">Cargando mapa... <span id="contador">0</span> PILARES</div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let datosPilares = [];
+            try {
+                datosPilares = JSON.parse('{{ datos_pilares|escapejs }}');
+                document.getElementById('contador').textContent = datosPilares.length;
+            } catch(e) {
+                document.getElementById('loading').innerHTML = 'Error cargando datos';
+                return;
+            }
+
+            const map = L.map('map').setView([19.4326, -99.1332], 11);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            const colores = {
+                'NORTE': '#e67e22',
+                'SUR': '#c0392b',
+                'PONIENTE': '#3498db',
+                'CENTRO': '#27ae60',
+                'ORIENTE': '#95a5a6',
+                'SUR PONIENTE': '#9b59b6'
+            };
+
+            const markers = [];
+            const bounds = [];
+
+            datosPilares.forEach(p => {
+                if (p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng)) {
+                    const color = colores[p.zona] || '#7f8c8d';
+                    const icon = L.divIcon({
+                        html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [16, 16]
+                    });
+
+                    const marker = L.marker([p.lat, p.lng], { icon: icon })
+                        .addTo(map)
+                        .bindPopup(`
+                            <div style="min-width: 220px;">
+                                <b style="font-size: 14px;">${p.nombre}</b><br>
+                                <hr style="margin: 5px 0;">
+                                <strong>Alcaldía:</strong> ${p.alcaldia}<br>
+                                <strong>Zona:</strong> ${p.zona}<br>
+                                💾 Equipos 8GB: ${p.equipos_8gb} de ${p.total_equipos}<br>
+                                🔧 Pasta térmica: ${p.pasta_termica}%<br>
+                                🖱️ Mouse nuevos: ${p.mouse_nuevos}<br>
+                                ⌨️ Teclados nuevos: ${p.teclados_nuevos}
+                            </div>
+                        `);
+                    markers.push({ marker, data: p });
+                    bounds.push([p.lat, p.lng]);
+                }
+            });
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('info').innerHTML = `PILARES CDMX - ${markers.length} puntos cargados`;
+            if (bounds.length > 0) map.fitBounds(bounds);
+
+            // 🔍 Autocompletador con resaltado
+            const searchInput = document.getElementById('searchInput');
+            const suggestionsBox = document.getElementById('suggestions');
+
+            searchInput.addEventListener('input', () => {
+                const texto = searchInput.value.trim().toLowerCase();
+                suggestionsBox.innerHTML = '';
+                if (!texto) {
+                    suggestionsBox.style.display = 'none';
+                    return;
+                }
+
+                const sugerencias = markers
+                    .map(m => [m.data.nombre, m.data.alcaldia])
+                    .flat()
+                    .filter(val => val.toLowerCase().includes(texto));
+
+                const unicas = [...new Set(sugerencias)];
+
+                if (unicas.length > 0) {
+                    unicas.forEach(s => {
+                        const div = document.createElement('div');
+                        div.textContent = s;
+                        div.addEventListener('click', () => {
+                            searchInput.value = s;
+                            suggestionsBox.style.display = 'none';
+                            buscar(s.toLowerCase());
+                        });
+                        suggestionsBox.appendChild(div);
+                    });
+                    suggestionsBox.style.display = 'block';
+                } else {
+                    suggestionsBox.style.display = 'none';
+                }
+
+                // Resaltar resultados en el mapa mientras escribes
+                buscar(texto);
+            });
+
+            function buscar(texto) {
+                let encontrados = markers.filter(m =>
+                    m.data.nombre.toLowerCase().includes(texto) ||
+                    m.data.alcaldia.toLowerCase().includes(texto)
+                );
+
+                if (encontrados.length > 0) {
+                    const grupo = L.featureGroup(encontrados.map(m => m.marker));
+                    map.fitBounds(grupo.getBounds());
+                    document.getElementById('info').innerHTML = `🔍 ${encontrados.length} resultado(s) para "${texto}"`;
+                } else {
+                    document.getElementById('info').innerHTML = `❌ No se encontró "${texto}"`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

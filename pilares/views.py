@@ -87,6 +87,7 @@ def dashboard(request):
         'total_equipos_8gb': total_equipos_8gb,
         'total_equipos': total_equipos,
         'porcentaje_general': porcentaje_general,
+        'es_admin': request.user.is_superuser,  # ejemplo
     }
     
     return render(request, 'pilares/dashboard.html', context)

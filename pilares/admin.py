@@ -4,10 +4,10 @@ from .models import Pilares, EquipoNoFuncional
 # ============ ADMIN PARA PILARES ============
 @admin.register(Pilares)
 class PilaresAdmin(admin.ModelAdmin):
-    list_display = ('clave_id', 'nombre', 'alcaldia', 'pasta_termica', 'mouse_nuevos', 'teclados_nuevos', 'equipos_8gb', 'total_equipos', 'fecha_mantenimiento')
+    list_display = ('clave_id', 'nombre', 'alcaldia', 'modelo_equipo', 'pasta_termica', 'mouse_nuevos', 'teclados_nuevos', 'equipos_8gb', 'total_equipos', 'fecha_mantenimiento')
     list_filter = ('alcaldia',)
-    search_fields = ('clave_id', 'nombre', 'alcaldia')
-    list_editable = ('pasta_termica', 'mouse_nuevos', 'teclados_nuevos', 'equipos_8gb', 'total_equipos', 'fecha_mantenimiento')
+    search_fields = ('clave_id', 'nombre', 'alcaldia', 'modelo_equipo')
+    list_editable = ('modelo_equipo', 'pasta_termica', 'mouse_nuevos', 'teclados_nuevos', 'equipos_8gb', 'total_equipos', 'fecha_mantenimiento')
     list_per_page = 25
 
 # ============ ADMIN PARA EQUIPOS NO FUNCIONALES ============

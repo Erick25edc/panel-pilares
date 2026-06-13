@@ -4,10 +4,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-tu-clave-aqui'
-DEBUG = False
-
-# 🔥 IMPORTANTE: Agrega tu dominio de PythonAnywhere 🔥
-ALLOWED_HOSTS = ['enanito14k.pythonanywhere.com', '127.0.0.1', 'localhost']
+DEBUG = True
+ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,12 +27,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
-
-TEMPLATES = [
+TEMPLATES = [  
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 👈 ahora apunta a la carpeta raíz
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -46,8 +42,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -68,9 +62,14 @@ TIME_ZONE = 'America/Mexico_City'
 USE_I18N = True
 USE_TZ = True
 
-# 🔥 ARCHIVOS ESTÁTICOS (LO QUE TE FALTABA) 🔥
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
+STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ========== IMPORTANTE: AGREGAR ESTAS LÍNEAS ==========
+ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = 'config.wsgi.application'
+
+# Login y Logout
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'

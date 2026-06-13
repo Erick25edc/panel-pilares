@@ -82,15 +82,13 @@
             <span class="navbar-brand"><i class="fas fa-map-marked-alt"></i> PILARES CDMX - Sistema de
                 Mantenimiento</span>
             <div>
-                <button id="btnSeguimiento" class="btn btn-warning me-2"><i class="fas fa-tools"></i> Seguimiento
-                    Equipos</button>
                 <button id="btnMapa" class="btn btn-outline-light me-2"><i class="fas fa-map"></i> Ver Mapa</button>
+                {% if user.is_staff %}
                 <button id="btnReportePDF" class="btn btn-danger me-2"><i class="fas fa-file-pdf"></i> Reporte
                     PDF</button>
-                <button id="btnFormatos" class="btn btn-info me-2"><i class="fas fa-file-alt"></i> Formatos de
-                    Visita</button>
                 <button id="btnExportar" class="btn btn-success"><i class="fas fa-file-excel"></i> Exportar
                     Excel</button>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -261,46 +259,57 @@
         }
 
         function inicializarTabla() {
-            dataTable = $('#pilaresTable').DataTable({
-                data: allPilares,
-                columns: [
-                    { data: 'clave_id' },
-                    { data: 'nombre' },
-                    { data: 'alcaldia' },
-                    { data: 'zona' },
-                    { data: 'modelo_equipo' },  // ← NUEVO
-                    {
-                        data: null,
-                        render: (d) => {
-                            const porcentaje = d.porcentaje_8gb;
-                            let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
-                            return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
-                        }
-                    },
-                    { data: 'pasta_termica', render: (d) => `${d}%` },
-                    { data: 'mouse_nuevos' },
-                    { data: 'teclados_nuevos' },
-                    { data: null, render: (d) => `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>` }
-                ],
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-                pageLength: 15,
-                order: [[1, 'asc']]
-            });
+            const esAdmin = {{ es_admin|yesno:"true,false" }};
 
-            $('#pilaresTable').on('click', '.btn-editar', function () {
-                const d = JSON.parse($(this).attr('data'));
-                document.getElementById('editClaveId').value = d.clave_id;
-                document.getElementById('editNombre').value = d.nombre;
-                document.getElementById('editAlcaldia').value = d.alcaldia;
-                document.getElementById('editPasta').value = d.pasta_termica;
-                document.getElementById('editMouse').value = d.mouse_nuevos;
-                document.getElementById('editTeclados').value = d.teclados_nuevos;
-                document.getElementById('editEquipos8gb').value = d.equipos_8gb;
-                document.getElementById('editTotalEquipos').value = d.total_equipos;
-                // 🔽 AQUÍ AGREGA ESTA LÍNEA 🔽
-                document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
-                editModal.show();
-            });
+        dataTable = $('#pilaresTable').DataTable({
+            data: allPilares,
+            columns: [
+                { data: 'clave_id' },
+                { data: 'nombre' },
+                { data: 'alcaldia' },
+                { data: 'zona' },
+                { data: 'modelo_equipo' },
+                {
+                    data: null,
+                    render: (d) => {
+                        const porcentaje = d.porcentaje_8gb;
+                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
+                        return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
+                    }
+                },
+                { data: 'pasta_termica', render: (d) => `${d}%` },
+                { data: 'mouse_nuevos' },
+                { data: 'teclados_nuevos' },
+                {
+                    data: null,
+                    render: (d) => {
+                        if (esAdmin) {
+                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
+                        } else {
+                            return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
+                        }
+                    }
+                }  // ← CIERRE DEL ÚLTIMO OBJETO
+            ],  // ← CIERRE DE columns (CON COMA)
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+            pageLength: 15,
+            order: [[1, 'asc']]
+        });
+
+        $('#pilaresTable').on('click', '.btn-editar', function () {
+            const d = JSON.parse($(this).attr('data'));
+            document.getElementById('editClaveId').value = d.clave_id;
+            document.getElementById('editNombre').value = d.nombre;
+            document.getElementById('editAlcaldia').value = d.alcaldia;
+            document.getElementById('editPasta').value = d.pasta_termica;
+            document.getElementById('editMouse').value = d.mouse_nuevos;
+            document.getElementById('editTeclados').value = d.teclados_nuevos;
+            document.getElementById('editEquipos8gb').value = d.equipos_8gb;
+            document.getElementById('editTotalEquipos').value = d.total_equipos;
+            // 🔽 AQUÍ AGREGA ESTA LÍNEA 🔽
+            document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
+            editModal.show();
+        });
         }
 
         document.getElementById('zonaFilter').addEventListener('change', function () {

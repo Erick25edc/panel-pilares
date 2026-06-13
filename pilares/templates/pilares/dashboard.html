@@ -93,6 +93,7 @@
                                 <th>PILARES</th>
                                 <th>Alcaldía</th>
                                 <th>Zona</th>
+                                <th>Modelo</th>  <!-- ← NUEVO -->
                                 <th>8GB / TOTAL</th>
                                 <th>% Pasta</th>
                                 <th>Mouse</th>
@@ -121,6 +122,7 @@
                     <div class="row"><div class="col-md-6 mb-3"><label>Teclados nuevos:</label><input type="number" id="editTeclados" class="form-control" min="0"></div>
                     <div class="col-md-6 mb-3"><label>Equipos 8GB:</label><input type="number" id="editEquipos8gb" class="form-control" min="0"></div></div>
                     <div class="mb-3"><label>Total equipos:</label><input type="number" id="editTotalEquipos" class="form-control" min="0"></div>
+                    <div class="mb-3"><label>Modelo del equipo:</label><input type="text" id="editModeloEquipo" class="form-control" placeholder="Ej: HP ProBook 440, Dell Optiplex..."></div>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" id="saveEditBtn" class="btn btn-primary">💾 Guardar cambios</button></div>
             </div>
@@ -162,6 +164,7 @@
                     { data: 'nombre' },
                     { data: 'alcaldia' },
                     { data: 'zona' },
+                    { data: 'modelo_equipo' },  // ← NUEVO
                     { 
                         data: null, 
                         render: (d) => {
@@ -190,6 +193,8 @@
                 document.getElementById('editTeclados').value = d.teclados_nuevos;
                 document.getElementById('editEquipos8gb').value = d.equipos_8gb;
                 document.getElementById('editTotalEquipos').value = d.total_equipos;
+                // 🔽 AQUÍ AGREGA ESTA LÍNEA 🔽
+                document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
                 editModal.show();
             });
         }
@@ -235,7 +240,7 @@
         
         const editModal = new bootstrap.Modal(document.getElementById('editModal'));
         document.getElementById('saveEditBtn').onclick = () => {
-            const data = { pasta_termica: document.getElementById('editPasta').value, mouse_nuevos: document.getElementById('editMouse').value, teclados_nuevos: document.getElementById('editTeclados').value, equipos_8gb: document.getElementById('editEquipos8gb').value, total_equipos: document.getElementById('editTotalEquipos').value };
+            const data = { pasta_termica: document.getElementById('editPasta').value, mouse_nuevos: document.getElementById('editMouse').value, teclados_nuevos: document.getElementById('editTeclados').value, equipos_8gb: document.getElementById('editEquipos8gb').value, total_equipos: document.getElementById('editTotalEquipos').value,modelo_equipo: document.getElementById('editModeloEquipo').value };
             fetch(`/api/pilares/${document.getElementById('editClaveId').value}/editar/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
                 .then(r => r.json()).then(data => { if (data.success) location.reload(); else alert('Error'); });
         };

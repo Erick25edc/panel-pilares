@@ -24,6 +24,7 @@ def dashboard(request):
             'nombre': p.nombre,
             'alcaldia': p.alcaldia,
             'zona': p.zona,
+            'modelo_equipo': p.modelo_equipo,  # ← NUEVO
             'pasta_termica': p.pasta_termica,
             'mouse_nuevos': p.mouse_nuevos,
             'teclados_nuevos': p.teclados_nuevos,
@@ -74,6 +75,7 @@ def mapa(request):
             'nombre': p.nombre,
             'alcaldia': p.alcaldia,
             'zona': p.zona,
+            'modelo_equipo': p.modelo_equipo,  # ← NUEVO
             'lat': float(p.latitud),
             'lng': float(p.longitud),
             'pasta_termica': p.pasta_termica,
@@ -101,6 +103,7 @@ def editar_pilares(request, clave_id):
             pilares.teclados_nuevos = data.get('teclados_nuevos', pilares.teclados_nuevos)
             pilares.equipos_8gb = data.get('equipos_8gb', pilares.equipos_8gb)
             pilares.total_equipos = data.get('total_equipos', pilares.total_equipos)
+            pilares.modelo_equipo = data.get('modelo_equipo', pilares.modelo_equipo)
             pilares.observaciones = data.get('observaciones', pilares.observaciones)
             pilares.save()
             

@@ -12,6 +12,8 @@ class Pilares(models.Model):
     calle = models.CharField('Calle', max_length=200, blank=True)
     codigo_postal = models.CharField('Código Postal', max_length=10, blank=True)
     colonia = models.CharField('Colonia', max_length=200, blank=True)
+    # 🔥 NUEVO CAMPO 🔥
+    modelo_equipo = models.CharField('Modelo del equipo', max_length=100, blank=True, default='')
     
     # Coordenadas (¡importantes para el mapa!)
     latitud = models.DecimalField('Latitud', max_digits=10, decimal_places=6)
@@ -23,6 +25,7 @@ class Pilares(models.Model):
     teclados_nuevos = models.IntegerField('Teclados nuevos', default=0)
     equipos_8gb = models.IntegerField('Equipos con 8GB RAM', default=0)
     total_equipos = models.IntegerField('Total equipos', default=0)
+    
     fecha_mantenimiento = models.DateField('Fecha último mantenimiento', null=True, blank=True)
     observaciones = models.TextField('Observaciones', blank=True)
     

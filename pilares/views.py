@@ -1,3 +1,6 @@
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
@@ -12,6 +15,29 @@ from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_CENTER
 import io
 
+# ============ FUNCIÓN PARA VERIFICAR SI ES ADMIN ============
+def es_admin(user):
+    return user.is_authenticated and user.is_staff
+
+# ============ VISTAS DE LOGIN/LOGOUT ============
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get('next', '/')
+            return redirect(next_url)
+        else:
+            return render(request, 'pilares/login.html', {'error': 'Usuario o contraseña incorrectos'})
+    return render(request, 'pilares/login.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+@login_required
 def dashboard(request):
     """Vista principal del dashboard con estadísticas y tabla"""
     pilares = Pilares.objects.all()
@@ -65,6 +91,7 @@ def dashboard(request):
     
     return render(request, 'pilares/dashboard.html', context)
 
+@login_required
 def mapa(request):
     """Vista del mapa interactivo"""
     pilares = Pilares.objects.all()
@@ -90,6 +117,7 @@ def mapa(request):
     
     return render(request, 'pilares/mapa.html', {'datos_pilares': datos_json})
 
+@user_passes_test(es_admin)
 @csrf_exempt
 def editar_pilares(request, clave_id):
     """API para editar un PILARES"""
@@ -220,6 +248,7 @@ def editar_equipo_no_funcional(request, equipo_id):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Método no permitido'})
 
+@user_passes_test(es_admin)
 def generar_reporte_pdf(request):
     """Genera un reporte PDF con todas las estadísticas de PILARES"""
     
@@ -412,3 +441,4 @@ def generar_reporte_pdf(request):
     response.write(pdf)
     
     return response
+

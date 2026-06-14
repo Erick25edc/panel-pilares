@@ -164,142 +164,149 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     
     <script>
-        // Datos desde Django
-        const allPilares = JSON.parse('{{ pilares_data_json|escapejs }}');
-        const zonasData = JSON.parse('{{ zonas_data_json|escapejs }}');
+    // Datos desde Django
+    const allPilares = JSON.parse('{{ pilares_data_json|escapejs }}');
+    const zonasData = JSON.parse('{{ zonas_data_json|escapejs }}');
+    
+    let zonaChart = null, distribucionChart = null, dataTable = null;
+    let editModal = null;  // ← Declarar primero
+    
+    const colores = { 'NORTE': '#e67e22', 'SUR': '#c0392b', 'PONIENTE': '#3498db', 'CENTRO': '#27ae60', 'ORIENTE': '#95a5a6', 'SUR PONIENTE': '#9b59b6' };
+    
+    function actualizarGraficas(zonaFiltro = 'TODAS') {
+        let datos = zonaFiltro === 'TODAS' ? zonasData : zonasData.filter(z => z.nombre === zonaFiltro);
+        if (zonaChart) zonaChart.destroy();
+        zonaChart = new Chart(document.getElementById('zonaChart'), {
+            type: 'bar',
+            data: { labels: datos.map(z => z.nombre), datasets: [{ label: '% Equipos 8GB', data: datos.map(z => z.porcentaje), backgroundColor: '#3498db' }] },
+            options: { responsive: true, scales: { y: { min: 0, max: 100 } } }
+        });
+        if (distribucionChart) distribucionChart.destroy();
+        distribucionChart = new Chart(document.getElementById('distribucionChart'), {
+            type: 'pie',
+            data: { labels: datos.map(z => z.nombre), datasets: [{ data: datos.map(z => z.count), backgroundColor: Object.values(colores) }] }
+        });
+    }
+    
+    function inicializarTabla() {
+        const esAdmin = {{ es_admin|yesno:"true,false" }};
         
-        let zonaChart = null, distribucionChart = null, dataTable = null;
-        let editModal = null;
-        
-        const colores = { 'NORTE': '#e67e22', 'SUR': '#c0392b', 'PONIENTE': '#3498db', 'CENTRO': '#27ae60', 'ORIENTE': '#95a5a6', 'SUR PONIENTE': '#9b59b6' };
-        
-        function actualizarGraficas(zonaFiltro = 'TODAS') {
-            let datos = zonaFiltro === 'TODAS' ? zonasData : zonasData.filter(z => z.nombre === zonaFiltro);
-            if (zonaChart) zonaChart.destroy();
-            zonaChart = new Chart(document.getElementById('zonaChart'), {
-                type: 'bar',
-                data: { labels: datos.map(z => z.nombre), datasets: [{ label: '% Equipos 8GB', data: datos.map(z => z.porcentaje), backgroundColor: '#3498db' }] },
-                options: { responsive: true, scales: { y: { min: 0, max: 100 } } }
-            });
-            if (distribucionChart) distribucionChart.destroy();
-            distribucionChart = new Chart(document.getElementById('distribucionChart'), {
-                type: 'pie',
-                data: { labels: datos.map(z => z.nombre), datasets: [{ data: datos.map(z => z.count), backgroundColor: Object.values(colores) }] }
-            });
-        }
-        
-        function inicializarTabla() {
-            const esAdmin = {{ es_admin|yesno:"true,false" }};
-            
-            dataTable = $('#pilaresTable').DataTable({
-                data: allPilares,
-                columns: [
-                    { data: 'clave_id' },
-                    { data: 'nombre' },
-                    { data: 'alcaldia' },
-                    { data: 'zona' },
-                    { data: 'modelo_equipo' },
-                    {
-                        data: null,
-                        render: (d) => {
-                            const porcentaje = d.porcentaje_8gb;
-                            let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
-                            return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
-                        }
-                    },
-                    { data: 'pasta_termica', render: (d) => `${d}%` },
-                    { data: 'mouse_nuevos' },
-                    { data: 'teclados_nuevos' },
-                    {
-                        data: null,
-                        render: (d) => {
-                            if (esAdmin) {
-                                return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
-                            } else {
-                                return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
-                            }
+        dataTable = $('#pilaresTable').DataTable({
+            data: allPilares,
+            columns: [
+                { data: 'clave_id' },
+                { data: 'nombre' },
+                { data: 'alcaldia' },
+                { data: 'zona' },
+                { data: 'modelo_equipo' },
+                {
+                    data: null,
+                    render: (d) => {
+                        const porcentaje = d.porcentaje_8gb;
+                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
+                        return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
+                    }
+                },
+                { data: 'pasta_termica', render: (d) => `${d}%` },
+                { data: 'mouse_nuevos' },
+                { data: 'teclados_nuevos' },
+                {
+                    data: null,
+                    render: (d) => {
+                        if (esAdmin) {
+                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
+                        } else {
+                            return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
                         }
                     }
-                ],
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-                pageLength: 15,
-                order: [[1, 'asc']]
-            });
-            
-            $('#pilaresTable').on('click', '.btn-editar', function() {
-                const d = JSON.parse($(this).attr('data'));
-                document.getElementById('editClaveId').value = d.clave_id;
-                document.getElementById('editNombre').value = d.nombre;
-                document.getElementById('editAlcaldia').value = d.alcaldia;
-                document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
-                document.getElementById('editPasta').value = d.pasta_termica;
-                document.getElementById('editMouse').value = d.mouse_nuevos;
-                document.getElementById('editTeclados').value = d.teclados_nuevos;
-                document.getElementById('editEquipos8gb').value = d.equipos_8gb;
-                document.getElementById('editTotalEquipos').value = d.total_equipos;
-                editModal.show();
-            });
-        }
+                }
+            ],
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+            pageLength: 15,
+            order: [[1, 'asc']]
+        });
+    }
+    
+    // 🔥 ESPERAR A QUE EL DOM ESTÉ LISTO
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar el modal PRIMERO
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
         
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar modal
-            editModal = new bootstrap.Modal(document.getElementById('editModal'));
-            
-            // Eventos de botones
-            document.getElementById('zonaFilter').addEventListener('change', function() {
-                const zona = this.value;
-                actualizarGraficas(zona);
+        // Eventos de botones de navegación
+        document.getElementById('btnMapa').onclick = () => window.location.href = '/mapa/';
+        document.getElementById('btnSeguimiento').onclick = () => window.location.href = '/seguimiento/';
+        
+        {% if user.is_staff %}
+        document.getElementById('btnReportePDF').onclick = () => window.open('/reporte-pdf/', '_blank');
+        document.getElementById('btnExportar').onclick = () => {
+            const ws = XLSX.utils.json_to_sheet(allPilares.map(p => ({ 
+                'CLAVE_ID': p.clave_id, 
+                'PILARES': p.nombre, 
+                'ALCALDIA': p.alcaldia, 
+                'ZONA': p.zona, 
+                'MODELO': p.modelo_equipo,
+                'EQUIPOS 8GB': `${p.equipos_8gb} / ${p.total_equipos}`,
+                '% PASTA': `${p.pasta_termica}%`, 
+                'MOUSE': p.mouse_nuevos, 
+                'TECLADOS': p.teclados_nuevos 
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'PILARES');
+            XLSX.writeFile(wb, `PILARES_${Date.now()}.xlsx`);
+        };
+        {% endif %}
+        
+        // Evento del filtro por zona
+        document.getElementById('zonaFilter').addEventListener('change', function() {
+            const zona = this.value;
+            actualizarGraficas(zona);
+            if (dataTable) {
                 if (zona === 'TODAS') dataTable.column(3).search('').draw();
                 else dataTable.column(3).search('^' + zona + '$', true, false).draw();
-            });
-            
-            document.getElementById('btnMapa').onclick = () => window.location.href = '/mapa/';
-            document.getElementById('btnSeguimiento').onclick = () => window.location.href = '/seguimiento/';
-            
-            {% if user.is_staff %}
-            document.getElementById('btnReportePDF').onclick = () => window.open('/reporte-pdf/', '_blank');
-            document.getElementById('btnExportar').onclick = () => {
-                const ws = XLSX.utils.json_to_sheet(allPilares.map(p => ({ 
-                    'CLAVE_ID': p.clave_id, 
-                    'PILARES': p.nombre, 
-                    'ALCALDIA': p.alcaldia, 
-                    'ZONA': p.zona, 
-                    'MODELO': p.modelo_equipo,
-                    'EQUIPOS 8GB': `${p.equipos_8gb} / ${p.total_equipos}`,
-                    '% PASTA': `${p.pasta_termica}%`, 
-                    'MOUSE': p.mouse_nuevos, 
-                    'TECLADOS': p.teclados_nuevos 
-                })));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'PILARES');
-                XLSX.writeFile(wb, `PILARES_${Date.now()}.xlsx`);
-            };
-            {% endif %}
-            
-            document.getElementById('saveEditBtn').onclick = () => {
-                const data = { 
-                    pasta_termica: document.getElementById('editPasta').value, 
-                    mouse_nuevos: document.getElementById('editMouse').value, 
-                    teclados_nuevos: document.getElementById('editTeclados').value, 
-                    equipos_8gb: document.getElementById('editEquipos8gb').value, 
-                    total_equipos: document.getElementById('editTotalEquipos').value,
-                    modelo_equipo: document.getElementById('editModeloEquipo').value
-                };
-                fetch(`/api/pilares/${document.getElementById('editClaveId').value}/editar/`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(data) 
-                })
-                .then(r => r.json())
-                .then(data => { 
-                    if (data.success) location.reload(); 
-                    else alert('Error al guardar'); 
-                });
-            };
-            
-            actualizarGraficas('TODAS');
-            inicializarTabla();
+            }
         });
-    </script>
+        
+        // Evento para guardar edición
+        document.getElementById('saveEditBtn').onclick = () => {
+            const data = { 
+                pasta_termica: document.getElementById('editPasta').value, 
+                mouse_nuevos: document.getElementById('editMouse').value, 
+                teclados_nuevos: document.getElementById('editTeclados').value, 
+                equipos_8gb: document.getElementById('editEquipos8gb').value, 
+                total_equipos: document.getElementById('editTotalEquipos').value,
+                modelo_equipo: document.getElementById('editModeloEquipo').value
+            };
+            fetch(`/api/pilares/${document.getElementById('editClaveId').value}/editar/`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(data) 
+            })
+            .then(r => r.json())
+            .then(data => { 
+                if (data.success) location.reload(); 
+                else alert('Error al guardar: ' + (data.error || 'Desconocido')); 
+            });
+        };
+        
+        // Inicializar gráficas y tabla
+        actualizarGraficas('TODAS');
+        inicializarTabla();
+        
+        // Evento de edición (se debe asignar DESPUÉS de inicializar la tabla)
+        $('#pilaresTable').on('click', '.btn-editar', function() {
+            const d = JSON.parse($(this).attr('data'));
+            document.getElementById('editClaveId').value = d.clave_id;
+            document.getElementById('editNombre').value = d.nombre;
+            document.getElementById('editAlcaldia').value = d.alcaldia;
+            document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
+            document.getElementById('editPasta').value = d.pasta_termica;
+            document.getElementById('editMouse').value = d.mouse_nuevos;
+            document.getElementById('editTeclados').value = d.teclados_nuevos;
+            document.getElementById('editEquipos8gb').value = d.equipos_8gb;
+            document.getElementById('editTotalEquipos').value = d.total_equipos;
+            editModal.show();
+        });
+    });
+</script>
 </body>
 </html>

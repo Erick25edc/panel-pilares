@@ -269,6 +269,7 @@
                     'ZONA': p.zona, 
                     'MODELO': p.modelo_equipo,
                     'EQUIPOS 8GB': `${p.equipos_8gb} / ${p.total_equipos}`,
+                    'INACTIVOS': p.equipos_inactivos || 0,  // ← NUEVA COLUMNA
                     '% PASTA': `${p.pasta_termica}%`, 
                     'MOUSE': p.mouse_nuevos, 
                     'TECLADOS': p.teclados_nuevos 

@@ -25,7 +25,7 @@ class Pilares(models.Model):
     teclados_nuevos = models.IntegerField('Teclados nuevos', default=0)
     equipos_8gb = models.IntegerField('Equipos con 8GB RAM', default=0)
     total_equipos = models.IntegerField('Total equipos', default=0)
-    
+    equipos_inactivos = models.IntegerField('Equipos inactivos', default=0)  # ← NUEVO CAMPO    
     fecha_mantenimiento = models.DateField('Fecha último mantenimiento', null=True, blank=True)
     observaciones = models.TextField('Observaciones', blank=True)
     

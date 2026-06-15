@@ -117,6 +117,7 @@
                                 <th>Zona</th>
                                 <th>Modelo</th>
                                 <th>8GB / TOTAL</th>
+                                <th>Inactivos</th>  <!-- ← NUEVO -->
                                 <th>% Pasta</th>
                                 <th>Mouse</th>
                                 <th>Teclados</th>
@@ -148,6 +149,7 @@
                     <div class="row"><div class="col-md-6 mb-3"><label>Teclados nuevos:</label><input type="number" id="editTeclados" class="form-control" min="0"></div>
                     <div class="col-md-6 mb-3"><label>Equipos 8GB:</label><input type="number" id="editEquipos8gb" class="form-control" min="0"></div></div>
                     <div class="mb-3"><label>Total equipos:</label><input type="number" id="editTotalEquipos" class="form-control" min="0"></div>
+                    <div class="col-md-6 mb-3"><label>Equipos inactivos:</label><input type="number" id="editEquiposInactivos" class="form-control" min="0"></div>
                     <div class="mb-3"><label>Observaciones:</label><textarea id="editObservaciones" class="form-control" rows="2"></textarea></div>
                 </div>
                 <div class="modal-footer">
@@ -207,6 +209,7 @@
                             return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
                         }
                     },
+                    { data: 'equipos_inactivos', render: (d) => d || 0 },  // ← NUEVO
                     { data: 'pasta_termica', render: (d) => `${d}%` },
                     { data: 'mouse_nuevos' },
                     { data: 'teclados_nuevos' },
@@ -283,6 +286,7 @@
                     teclados_nuevos: document.getElementById('editTeclados').value, 
                     equipos_8gb: document.getElementById('editEquipos8gb').value, 
                     total_equipos: document.getElementById('editTotalEquipos').value,
+                    equipos_inactivos: document.getElementById('editEquiposInactivos').value,
                     modelo_equipo: document.getElementById('editModeloEquipo').value
                 };
                 fetch(`/api/pilares/${document.getElementById('editClaveId').value}/editar/`, { 

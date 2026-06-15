@@ -213,7 +213,7 @@
                                 <th>Zona</th>
                                 <th>Modelo</th>
                                 <th>8GB / TOTAL</th>
-                                <th>Inactivos</th> <!-- ← NUEVO -->
+                                <th>Inactivos</th>
                                 <th>% Pasta</th>
                                 <th>Mouse</th>
                                 <th>Teclados</th>
@@ -301,72 +301,72 @@
         }
 
         function inicializarTabla() {
-            const esAdmin = {{ es_admin| yesno: "true,false"
-        }};
+            const esAdmin = {{ es_admin|yesno:"true,false" }};
 
-        dataTable = $('#pilaresTable').DataTable({
-            data: allPilares,
-            columns: [
-                { data: 'clave_id' },
-                { data: 'nombre' },
-                { data: 'alcaldia' },
-                { data: 'zona' },
-                { data: 'modelo_equipo' },
-                {
-                    data: null,
-                    render: (d) => {
-                        const porcentaje = d.porcentaje_8gb;
-                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
-                        return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
-                    }
-                },
-                { data: 'equipos_inactivos', render: (d) => d || 0 },  // ← NUEVO
-                { data: 'pasta_termica', render: (d) => `${d}%` },
-                { data: 'mouse_nuevos' },
-                { data: 'teclados_nuevos' },
-                {
-                    data: null,
-                    render: (d) => {
-                        if (esAdmin) {
-                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
-                        } else {
-                            return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
+            dataTable = $('#pilaresTable').DataTable({
+                data: allPilares,
+                columns: [
+                    { data: 'clave_id' },
+                    { data: 'nombre' },
+                    { data: 'alcaldia' },
+                    { data: 'zona' },
+                    { data: 'modelo_equipo' },
+                    {
+                        data: null,
+                        render: (d) => {
+                            const porcentaje = d.porcentaje_8gb;
+                            let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
+                            return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
+                        }
+                    },
+                    { data: 'equipos_inactivos', render: (d) => d || 0 },
+                    { data: 'pasta_termica', render: (d) => `${d}%` },
+                    { data: 'mouse_nuevos' },
+                    { data: 'teclados_nuevos' },
+                    {
+                        data: null,
+                        render: (d) => {
+                            if (esAdmin) {
+                                return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
+                            } else {
+                                return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
+                            }
                         }
                     }
-                }
-            ],
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-            pageLength: 15,
-            order: [[1, 'asc']]
-        });
+                ],
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                pageLength: 15,
+                order: [[1, 'asc']]
+            });
 
-        $('#pilaresTable').on('click', '.btn-editar', function () {
-            const d = JSON.parse($(this).attr('data'));
-            document.getElementById('editClaveId').value = d.clave_id;
-            document.getElementById('editNombre').value = d.nombre;
-            document.getElementById('editAlcaldia').value = d.alcaldia;
-            document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
-            document.getElementById('editPasta').value = d.pasta_termica;
-            document.getElementById('editMouse').value = d.mouse_nuevos;
-            document.getElementById('editTeclados').value = d.teclados_nuevos;
-            document.getElementById('editEquipos8gb').value = d.equipos_8gb;
-            document.getElementById('editTotalEquipos').value = d.total_equipos;
-            // 🔽 AGREGA ESTA LÍNEA 🔽
-            document.getElementById('editEquiposInactivos').value = d.equipos_inactivos || 0;
-            editModal.show();
-        });
-        
+            $('#pilaresTable').on('click', '.btn-editar', function() {
+                const d = JSON.parse($(this).attr('data'));
+                document.getElementById('editClaveId').value = d.clave_id;
+                document.getElementById('editNombre').value = d.nombre;
+                document.getElementById('editAlcaldia').value = d.alcaldia;
+                document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
+                document.getElementById('editPasta').value = d.pasta_termica;
+                document.getElementById('editMouse').value = d.mouse_nuevos;
+                document.getElementById('editTeclados').value = d.teclados_nuevos;
+                document.getElementById('editEquipos8gb').value = d.equipos_8gb;
+                document.getElementById('editTotalEquipos').value = d.total_equipos;
+                document.getElementById('editEquiposInactivos').value = d.equipos_inactivos || 0;
+                editModal.show();
+            });
+        }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             // Inicializar modal
             editModal = new bootstrap.Modal(document.getElementById('editModal'));
 
             // Eventos de botones
-            document.getElementById('zonaFilter').addEventListener('change', function () {
+            document.getElementById('zonaFilter').addEventListener('change', function() {
                 const zona = this.value;
                 actualizarGraficas(zona);
-                if (zona === 'TODAS') dataTable.column(3).search('').draw();
-                else dataTable.column(3).search('^' + zona + '$', true, false).draw();
+                if (dataTable) {
+                    if (zona === 'TODAS') dataTable.column(3).search('').draw();
+                    else dataTable.column(3).search('^' + zona + '$', true, false).draw();
+                }
             });
 
             document.getElementById('btnMapa').onclick = () => window.location.href = '/mapa/';
@@ -382,6 +382,7 @@
                     'ZONA': p.zona,
                     'MODELO': p.modelo_equipo,
                     'EQUIPOS 8GB': `${p.equipos_8gb} / ${p.total_equipos}`,
+                    'INACTIVOS': p.equipos_inactivos || 0,
                     '% PASTA': `${p.pasta_termica}%`,
                     'MOUSE': p.mouse_nuevos,
                     'TECLADOS': p.teclados_nuevos
@@ -407,11 +408,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) location.reload();
-                        else alert('Error al guardar');
-                    });
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) location.reload();
+                    else alert('Error al guardar: ' + (data.error || 'Desconocido'));
+                });
             };
 
             actualizarGraficas('TODAS');

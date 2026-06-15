@@ -1,14 +1,21 @@
-from django.urls import path
-from . import views
+from django.contrib import admin
+from .models import Pilares, EquipoNoFuncional
 
-urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('mapa/', views.mapa, name='mapa'),
-    path('seguimiento/', views.seguimiento, name='seguimiento'),
-    path('reporte-pdf/', views.generar_reporte_pdf, name='reporte_pdf'),
-    path('api/pilares/<str:clave_id>/editar/', views.editar_pilares, name='editar_pilares'),
-    path('api/equipo/agregar/', views.agregar_equipo_no_funcional, name='agregar_equipo'),
-    path('api/equipo/<int:equipo_id>/editar/', views.editar_equipo_no_funcional, name='editar_equipo'),
-]
+# ============ ADMIN PARA PILARES ============
+@admin.register(Pilares)
+class PilaresAdmin(admin.ModelAdmin):
+    list_display = ('clave_id', 'nombre', 'alcaldia', 'modelo_equipo', 'pasta_termica', 'mouse_nuevos', 'teclados_nuevos', 'equipos_8gb', 'total_equipos', 'equipos_inactivos', 'fecha_mantenimiento')
+    list_filter = ('alcaldia',)
+    search_fields = ('clave_id', 'nombre', 'alcaldia', 'modelo_equipo')
+    list_editable = ('modelo_equipo', 'pasta_termica', 'mouse_nuevos', 'teclados_nuevos', 'equipos_8gb', 'total_equipos', 'fecha_mantenimiento')
+    list_per_page = 25
+
+# ============ ADMIN PARA EQUIPOS NO FUNCIONALES ============
+@admin.register(EquipoNoFuncional)
+class EquipoNoFuncionalAdmin(admin.ModelAdmin):
+    list_display = ('id', 'pilares', 'equipo', 'tipo_falla', 'estado', 'fecha_reporte')
+    list_filter = ('tipo_falla', 'estado', 'fecha_reporte')
+    search_fields = ('equipo', 'pilares__nombre', 'pilares__clave_id')
+    list_editable = ('estado',)  # Permite editar el estado directamente desde la lista
+    list_per_page = 25
+    date_hierarchy = 'fecha_reporte'  # Navegación por fechas

@@ -56,6 +56,7 @@ def dashboard(request):
             'teclados_nuevos': p.teclados_nuevos,
             'equipos_8gb': p.equipos_8gb,
             'total_equipos': p.total_equipos,
+            'equipos_inactivos': p.equipos_inactivos,  # ← NUEVO
             'porcentaje_8gb': p.porcentaje_8gb,
         })
     
@@ -132,6 +133,7 @@ def editar_pilares(request, clave_id):
             pilares.teclados_nuevos = data.get('teclados_nuevos', pilares.teclados_nuevos)
             pilares.equipos_8gb = data.get('equipos_8gb', pilares.equipos_8gb)
             pilares.total_equipos = data.get('total_equipos', pilares.total_equipos)
+            pilares.equipos_inactivos = data.get('equipos_inactivos', pilares.equipos_inactivos)
             pilares.modelo_equipo = data.get('modelo_equipo', pilares.modelo_equipo)
             pilares.observaciones = data.get('observaciones', pilares.observaciones)
             pilares.save()

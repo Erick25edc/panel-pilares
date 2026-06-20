@@ -95,33 +95,119 @@
         .user-info i {
             margin-right: 5px;
         }
+
+        /* ========== MENÚ HAMBURGUESA ========== */
+        .mobile-menu-btn {
+            display: none !important;
+        }
+
+        .desktop-buttons {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-buttons {
+                display: none !important;
+            }
+
+            .mobile-menu-btn {
+                display: inline-block !important;
+            }
+
+            .navbar-brand {
+                font-size: 0.85rem;
+            }
+
+            .user-info {
+                font-size: 0.75rem;
+                margin-right: 8px;
+            }
+
+            .btn-logout {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .dropdown-menu-dark .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item i {
+            width: 20px;
+        }
     </style>
 </head>
 
 <body>
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-            <span class="navbar-brand"><i class="fas fa-map-marked-alt"></i> PILARES CDMX - Sistema de
-                Mantenimiento</span>
+            <span class="navbar-brand">
+                <i class="fas fa-map-marked-alt"></i>
+                <span class="d-none d-sm-inline">PILARES CDMX - Sistema de Mantenimiento</span>
+                <span class="d-inline d-sm-none">PILARES CDMX</span>
+            </span>
+
             <div class="d-flex align-items-center">
+                <!-- Usuario y Logout -->
                 <span class="user-info">
-                    <i class="fas fa-user-circle"></i> {{ user.username }}
+                    <i class="fas fa-user-circle"></i>
+                    <span class="d-none d-sm-inline">{{ user.username }}</span>
                     {% if user.is_staff %}
-                    <span class="badge bg-warning text-dark ms-1">Admin</span>
+                    <span class="badge bg-warning text-dark ms-1 d-none d-sm-inline">Admin</span>
                     {% endif %}
                 </span>
                 <a href="{% url 'logout' %}" class="btn btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Salir
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-sm-inline">Salir</span>
                 </a>
-                <button id="btnMapa" class="btn btn-outline-light ms-2"><i class="fas fa-map"></i> Ver Mapa</button>
-                <button id="btnSeguimiento" class="btn btn-warning ms-2"><i class="fas fa-tools"></i> Seguimiento
-                    Equipos</button>
-                {% if user.is_staff %}
-                <button id="btnReportePDF" class="btn btn-danger ms-2"><i class="fas fa-file-pdf"></i> Reporte
-                    PDF</button>
-                <button id="btnExportar" class="btn btn-success ms-2"><i class="fas fa-file-excel"></i> Exportar
-                    Excel</button>
-                {% endif %}
+
+                <!-- ========== BOTONES DE ESCRITORIO ========== -->
+                <div class="desktop-buttons ms-2">
+                    <button id="btnMapa" class="btn btn-outline-light btn-sm"><i class="fas fa-map"></i> Mapa</button>
+                    <button id="btnSeguimiento" class="btn btn-warning btn-sm"><i class="fas fa-tools"></i>
+                        Seguimiento</button>
+                    <button id="btnHistorial" class="btn btn-info btn-sm"><i class="fas fa-history"></i>
+                        Historial</button>
+                    <button id="btnIncidencias" class="btn btn-danger btn-sm"><i
+                            class="fas fa-exclamation-triangle"></i> Incidencias</button>
+                    {% if user.is_staff %}
+                    <button id="btnReportePDF" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i>
+                        PDF</button>
+                    <button id="btnExportar" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i>
+                        Excel</button>
+                    {% endif %}
+                </div>
+
+                <!-- ========== MENÚ HAMBURGUESA (MÓVIL) ========== -->
+                <div class="mobile-menu-btn ms-2">
+                    <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="#" id="btnMapaMobile"><i class="fas fa-map"></i> Ver Mapa</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="btnSeguimientoMobile"><i class="fas fa-tools"></i>
+                                Seguimiento</a></li>
+                        <li><a class="dropdown-item" href="#" id="btnHistorialMobile"><i class="fas fa-history"></i>
+                                Historial</a></li>
+                        <li><a class="dropdown-item" href="#" id="btnIncidenciasMobile"><i
+                                    class="fas fa-exclamation-triangle"></i> Incidencias</a></li>
+                        {% if user.is_staff %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="btnReportePDFMobile"><i class="fas fa-file-pdf"></i>
+                                Reporte PDF</a></li>
+                        <li><a class="dropdown-item" href="#" id="btnExportarMobile"><i class="fas fa-file-excel"></i>
+                                Exportar Excel</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -301,66 +387,65 @@
         }
 
         function inicializarTabla() {
-            const esAdmin = {{ es_admin|yesno:"true,false" }};
-
-            dataTable = $('#pilaresTable').DataTable({
-                data: allPilares,
-                columns: [
-                    { data: 'clave_id' },
-                    { data: 'nombre' },
-                    { data: 'alcaldia' },
-                    { data: 'zona' },
-                    { data: 'modelo_equipo' },
-                    {
-                        data: null,
-                        render: (d) => {
-                            const porcentaje = d.porcentaje_8gb;
-                            let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
-                            return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
-                        }
-                    },
-                    { data: 'equipos_inactivos', render: (d) => d || 0 },
-                    { data: 'pasta_termica', render: (d) => `${d}%` },
-                    { data: 'mouse_nuevos' },
-                    { data: 'teclados_nuevos' },
-                    {
-                        data: null,
-                        render: (d) => {
-                            if (esAdmin) {
-                                return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
-                            } else {
-                                return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
-                            }
+            const esAdmin = {% if user.is_staff %} true{% else %} false{% endif %};
+        dataTable = $('#pilaresTable').DataTable({
+            data: allPilares,
+            columns: [
+                { data: 'clave_id' },
+                { data: 'nombre' },
+                { data: 'alcaldia' },
+                { data: 'zona' },
+                { data: 'modelo_equipo' },
+                {
+                    data: null,
+                    render: (d) => {
+                        const porcentaje = d.porcentaje_8gb;
+                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
+                        return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
+                    }
+                },
+                { data: 'equipos_inactivos', render: (d) => d || 0 },
+                { data: 'pasta_termica', render: (d) => `${d}%` },
+                { data: 'mouse_nuevos' },
+                { data: 'teclados_nuevos' },
+                {
+                    data: null,
+                    render: (d) => {
+                        if (esAdmin) {
+                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
+                        } else {
+                            return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
                         }
                     }
-                ],
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-                pageLength: 15,
-                order: [[1, 'asc']]
-            });
+                }
+            ],
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+            pageLength: 15,
+            order: [[1, 'asc']]
+        });
 
-            $('#pilaresTable').on('click', '.btn-editar', function() {
-                const d = JSON.parse($(this).attr('data'));
-                document.getElementById('editClaveId').value = d.clave_id;
-                document.getElementById('editNombre').value = d.nombre;
-                document.getElementById('editAlcaldia').value = d.alcaldia;
-                document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
-                document.getElementById('editPasta').value = d.pasta_termica;
-                document.getElementById('editMouse').value = d.mouse_nuevos;
-                document.getElementById('editTeclados').value = d.teclados_nuevos;
-                document.getElementById('editEquipos8gb').value = d.equipos_8gb;
-                document.getElementById('editTotalEquipos').value = d.total_equipos;
-                document.getElementById('editEquiposInactivos').value = d.equipos_inactivos || 0;
-                editModal.show();
-            });
+        $('#pilaresTable').on('click', '.btn-editar', function () {
+            const d = JSON.parse($(this).attr('data'));
+            document.getElementById('editClaveId').value = d.clave_id;
+            document.getElementById('editNombre').value = d.nombre;
+            document.getElementById('editAlcaldia').value = d.alcaldia;
+            document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
+            document.getElementById('editPasta').value = d.pasta_termica;
+            document.getElementById('editMouse').value = d.mouse_nuevos;
+            document.getElementById('editTeclados').value = d.teclados_nuevos;
+            document.getElementById('editEquipos8gb').value = d.equipos_8gb;
+            document.getElementById('editTotalEquipos').value = d.total_equipos;
+            document.getElementById('editEquiposInactivos').value = d.equipos_inactivos || 0;
+            editModal.show();
+        });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Inicializar modal
             editModal = new bootstrap.Modal(document.getElementById('editModal'));
 
             // Eventos de botones
-            document.getElementById('zonaFilter').addEventListener('change', function() {
+            document.getElementById('zonaFilter').addEventListener('change', function () {
                 const zona = this.value;
                 actualizarGraficas(zona);
                 if (dataTable) {
@@ -371,6 +456,17 @@
 
             document.getElementById('btnMapa').onclick = () => window.location.href = '/mapa/';
             document.getElementById('btnSeguimiento').onclick = () => window.location.href = '/seguimiento/';
+
+            // ========== EVENTOS DEL MENÚ MÓVIL ==========
+            document.getElementById('btnMapaMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/mapa/'; };
+            document.getElementById('btnSeguimientoMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/seguimiento/'; };
+            document.getElementById('btnHistorialMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/historial/'; };
+            document.getElementById('btnIncidenciasMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/incidencias/'; };
+
+            {% if user.is_staff %}
+            document.getElementById('btnReportePDFMobile').onclick = (e) => { e.preventDefault(); window.open('/reporte-pdf/', '_blank'); };
+            document.getElementById('btnExportarMobile').onclick = (e) => { e.preventDefault(); document.getElementById('btnExportar').click(); };
+            {% endif %}
 
             {% if user.is_staff %}
             document.getElementById('btnReportePDF').onclick = () => window.open('/reporte-pdf/', '_blank');
@@ -408,11 +504,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) location.reload();
-                    else alert('Error al guardar: ' + (data.error || 'Desconocido'));
-                });
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else alert('Error al guardar: ' + (data.error || 'Desconocido'));
+                    });
             };
 
             actualizarGraficas('TODAS');

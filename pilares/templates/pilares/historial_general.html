@@ -21,15 +21,21 @@
         </a>
     </div>
 
-    <!-- Filtros (opcional - mejora la experiencia) -->
+    <!-- Filtros con SELECT + AUTOCOMPLETADO -->
     <div class="card shadow-sm mb-3 mb-md-4">
         <div class="card-body p-2 p-md-3">
             <div class="row g-2 align-items-center">
-                <div class="col-12 col-md-4">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" id="filtroHistorial" class="form-control" 
-                               placeholder="Buscar por PILARES...">
+                <div class="col-12 col-md-5">
+                    <div class="position-relative">
+                        <select id="filtroPilaresSelect" class="form-select form-select-sm" style="width: 100%;">
+                            <option value="">-- Todos los PILARES --</option>
+                            {% for p in pilares_list|dictsort:"clave_id" %}
+                            <option value="{{ p.nombre|lower }}">{{ p.clave_id }} - {{ p.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted" style="font-size: 0.65rem;">
+                            <i class="fas fa-info-circle me-1"></i>Escribe para buscar o selecciona de la lista
+                        </small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -41,12 +47,12 @@
                         <option value="CERRADA">⚫ Cerrada</option>
                     </select>
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-3 col-md-2">
                     <button id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm w-100">
                         <i class="fas fa-undo me-1"></i> Limpiar
                     </button>
                 </div>
-                <div class="col-12 col-md-2 text-md-end">
+                <div class="col-3 col-md-2 text-md-end">
                     <span class="badge bg-primary" id="contadorRegistros">{{ total }} registros</span>
                 </div>
             </div>
@@ -76,7 +82,7 @@
                         </thead>
                         <tbody id="tablaHistorialBody">
                             {% for h in historial %}
-                            <tr data-pilares="{{ h.pilares.nombre|lower }}" data-estado="{{ h.estado_nuevo }}">
+                            <tr data-pilares="{{ h.pilares.nombre|lower }}" data-estado="{{ h.estado_nuevo }}" data-clave="{{ h.pilares.clave_id|lower }}">
                                 <td>
                                     <strong>{{ h.pilares.nombre }}</strong>
                                     <br><small class="text-muted">{{ h.pilares.clave_id }}</small>
@@ -114,7 +120,7 @@
             <!-- ============ VISTA MÓVIL (tarjetas) ============ -->
             <div class="d-md-none" id="vistaMovilHistorial">
                 {% for h in historial %}
-                <div class="card mb-2 shadow-sm historial-card" data-pilares="{{ h.pilares.nombre|lower }}" data-estado="{{ h.estado_nuevo }}">
+                <div class="card mb-2 shadow-sm historial-card" data-pilares="{{ h.pilares.nombre|lower }}" data-estado="{{ h.estado_nuevo }}" data-clave="{{ h.pilares.clave_id|lower }}">
                     <div class="card-body py-2 px-3">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
@@ -187,7 +193,7 @@
         </div>
     </div>
 
-    <!-- Paginación (opcional - si tienes más de 50 registros) -->
+    <!-- Paginación (opcional) -->
     {% if historial.paginator %}
     <div class="d-flex justify-content-center mt-3">
         <nav aria-label="Navegación de historial">
@@ -209,15 +215,16 @@
 
 <script>
     // ============================================================
-    // FILTROS EN TIEMPO REAL
+    // FILTROS CON SELECT + BUSCADOR
     // ============================================================
-    const filtroPilares = document.getElementById('filtroHistorial');
+    const filtroPilaresSelect = document.getElementById('filtroPilaresSelect');
     const filtroEstado = document.getElementById('filtroEstado');
     const btnLimpiar = document.getElementById('btnLimpiarFiltros');
     const contador = document.getElementById('contadorRegistros');
 
+    // Función para filtrar
     function filtrarHistorial() {
-        const texto = filtroPilares.value.toLowerCase().trim();
+        const textoFiltro = filtroPilaresSelect.value.toLowerCase().trim();
         const estado = filtroEstado.value;
 
         // Para vista escritorio (tabla)
@@ -225,10 +232,14 @@
         let visibles = 0;
 
         filas.forEach(fila => {
-            const pilares = fila.dataset.pilares || '';
+            // Buscar en nombre y clave_id
+            const pilaresNombre = fila.dataset.pilares || '';
+            const claveId = fila.dataset.clave || '';
             const filaEstado = fila.dataset.estado || '';
             
-            const coincideTexto = pilares.includes(texto);
+            const coincideTexto = !textoFiltro || 
+                                  pilaresNombre.includes(textoFiltro) || 
+                                  claveId.includes(textoFiltro);
             const coincideEstado = !estado || filaEstado === estado;
             
             if (coincideTexto && coincideEstado) {
@@ -241,27 +252,40 @@
 
         // Para vista móvil (tarjetas)
         const tarjetas = document.querySelectorAll('#vistaMovilHistorial .historial-card');
+        let visiblesMovil = 0;
         tarjetas.forEach(tarjeta => {
-            const pilares = tarjeta.dataset.pilares || '';
+            const pilaresNombre = tarjeta.dataset.pilares || '';
+            const claveId = tarjeta.dataset.clave || '';
             const tarjetaEstado = tarjeta.dataset.estado || '';
             
-            const coincideTexto = pilares.includes(texto);
+            const coincideTexto = !textoFiltro || 
+                                  pilaresNombre.includes(textoFiltro) || 
+                                  claveId.includes(textoFiltro);
             const coincideEstado = !estado || tarjetaEstado === estado;
             
-            tarjeta.style.display = (coincideTexto && coincideEstado) ? '' : 'none';
+            if (coincideTexto && coincideEstado) {
+                tarjeta.style.display = '';
+                visiblesMovil++;
+            } else {
+                tarjeta.style.display = 'none';
+            }
         });
 
         // Actualizar contador
-        contador.textContent = `${visibles} registros`;
+        const totalVisibles = window.innerWidth < 768 ? visiblesMovil : visibles;
+        contador.textContent = `${totalVisibles} registros`;
     }
 
-    // Eventos de filtro
-    filtroPilares.addEventListener('input', filtrarHistorial);
+    // Evento: cambio en el select
+    filtroPilaresSelect.addEventListener('change', filtrarHistorial);
     filtroEstado.addEventListener('change', filtrarHistorial);
+
+    // Evento: escribir en el select (búsqueda en tiempo real)
+    filtroPilaresSelect.addEventListener('input', filtrarHistorial);
 
     // Limpiar filtros
     btnLimpiar.addEventListener('click', function() {
-        filtroPilares.value = '';
+        filtroPilaresSelect.value = '';
         filtroEstado.value = '';
         filtrarHistorial();
     });
@@ -271,6 +295,36 @@
         const totalFilas = document.querySelectorAll('#tablaHistorialBody tr:not([style*="display: none"])').length;
         if (totalFilas > 0) {
             contador.textContent = `${totalFilas} registros`;
+        }
+    });
+
+    // ============================================================
+    // MEJORA: Auto-seleccionar al escribir (como autocompletado)
+    // ============================================================
+    filtroPilaresSelect.addEventListener('input', function() {
+        const texto = this.value.toLowerCase();
+        const options = this.options;
+        let encontrado = false;
+        
+        // Buscar coincidencia en las opciones
+        for (let i = 0; i < options.length; i++) {
+            const optionText = options[i].text.toLowerCase();
+            if (optionText.includes(texto) && texto.length > 0) {
+                // Si encuentra coincidencia, no hace nada (el usuario puede seleccionar)
+                encontrado = true;
+                // Resaltar visualmente la opción
+                options[i].style.backgroundColor = '#e3f2fd';
+            } else {
+                options[i].style.backgroundColor = '';
+            }
+        }
+    });
+
+    // Limpiar resaltado al cambiar
+    filtroPilaresSelect.addEventListener('change', function() {
+        const options = this.options;
+        for (let i = 0; i < options.length; i++) {
+            options[i].style.backgroundColor = '';
         }
     });
 </script>
@@ -313,6 +367,17 @@
     /* Scroll suave en móvil */
     .table-responsive {
         scroll-behavior: smooth;
+    }
+
+    /* Estilo para el select con búsqueda */
+    #filtroPilaresSelect {
+        cursor: pointer;
+    }
+    #filtroPilaresSelect option {
+        padding: 4px 8px;
+    }
+    #filtroPilaresSelect option:hover {
+        background-color: #e3f2fd !important;
     }
 </style>
 {% endblock %}

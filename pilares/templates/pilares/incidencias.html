@@ -31,10 +31,10 @@
         <div class="card-body">
             <div class="row g-2">
                 <div class="col-md-4">
-                    <select id="selectPilaresNuevo" class="form-select">
-                        <option value="">-- Seleccionar PILARES --</option>
-                        {% for p in pilares_list %}
-                        <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre }}</option>
+                    <!-- En incidencias.html -->
+                    <select name="pilares">
+                        {% for p in pilares_list|dictsort:"clave_id" %}
+                            <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -66,10 +66,10 @@
         </div>
         <div class="row g-2">
             <div class="col-md-4">
-                <select id="selectPilaresIncidencias" class="form-select">
-                    <option value="">-- Seleccionar PILARES --</option>
-                    {% for p in pilares_list %}
-                    <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre }}</option>
+                <!-- En incidencias.html -->
+                <select name="pilares">
+                    {% for p in pilares_list|dictsort:"clave_id" %}
+                        <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre }}</option>
                     {% endfor %}
                 </select>
             </div>

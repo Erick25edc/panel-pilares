@@ -445,3 +445,295 @@ def generar_reporte_pdf(request):
     
     return response
 
+# ============ INCIDENCIAS ============
+def incidencias(request):
+    """Vista de la pestaña de incidencias"""
+    from .models import ObservacionHistorial, Pilares
+    pilares_list = Pilares.objects.all().order_by('nombre')
+    return render(request, 'pilares/incidencias.html', {'pilares_list': pilares_list})
+
+def api_incidencias_pilares(request, clave_id):
+    """API para obtener las incidencias de un PILARES en JSON"""
+    from .models import ObservacionHistorial
+    historial = ObservacionHistorial.objects.filter(pilares__clave_id=clave_id).order_by('fecha_creacion')
+    
+    data = []
+    for h in historial:
+        data.append({
+            'id': h.id,
+            'fecha_creacion': h.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
+            'tipo_cambio': h.tipo_cambio,
+            'tipo_cambio_display': h.get_tipo_cambio_display(),
+            'estado_nuevo': h.estado_nuevo,
+            'estado_nuevo_display': h.get_estado_nuevo_display(),
+            'observacion_anterior': h.observacion_anterior,
+            'observacion_nueva': h.observacion_nueva,
+        })
+    
+    return JsonResponse(data, safe=False)
+
+def historial_general(request):
+    """Vista del historial general de observaciones"""
+    try:
+        from .models import ObservacionHistorial
+        historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').all()[:100]
+        total = ObservacionHistorial.objects.count()
+    except:
+        # Si el modelo no existe, mostrar vacío
+        historial = []
+        total = 0
+    
+    context = {
+        'historial': historial,
+        'total': total,
+    }
+    return render(request, 'pilares/historial_general.html', context)
+
+# ============ CREAR INCIDENCIA ============
+@csrf_exempt
+@login_required
+def crear_incidencia(request):
+    """API para crear una nueva incidencia"""
+    if request.method == 'POST':
+        try:
+            from .models import ObservacionHistorial, Pilares
+            data = json.loads(request.body)
+            
+            pilares = Pilares.objects.get(clave_id=data.get('clave_id'))
+            
+            # Crear la incidencia
+            incidencia = ObservacionHistorial.objects.create(
+                pilares=pilares,
+                usuario=request.user,
+                observacion_nueva=data.get('observacion', ''),
+                tipo_cambio='CREACION',
+                estado_nuevo='ABIERTA',
+                equipo_afectado=data.get('equipo', ''),
+            )
+            
+            # Actualizar el estado del PILARES
+            pilares.estado_incidencia = 'ABIERTA'
+            pilares.observaciones = data.get('observacion', '')
+            pilares.save()
+            
+            return JsonResponse({'success': True, 'id': incidencia.id})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+# ============ ACTUALIZAR INCIDENCIA ============
+@csrf_exempt
+@login_required
+def actualizar_incidencia(request, incidencia_id):
+    """API para actualizar una incidencia existente"""
+    if request.method == 'POST':
+        try:
+            from .models import ObservacionHistorial
+            data = json.loads(request.body)
+            
+            incidencia = ObservacionHistorial.objects.get(id=incidencia_id)
+            
+            # Guardar la observación anterior
+            incidencia.observacion_anterior = incidencia.observacion_nueva
+            
+            # Actualizar con los nuevos datos
+            incidencia.observacion_nueva = data.get('observacion', incidencia.observacion_nueva)
+            incidencia.estado_nuevo = data.get('estado', incidencia.estado_nuevo)
+            incidencia.tipo_cambio = 'ACTUALIZACION'
+            incidencia.save()
+            
+            # Actualizar el PILARES
+            pilares = incidencia.pilares
+            pilares.observaciones = incidencia.observacion_nueva
+            pilares.estado_incidencia = incidencia.estado_nuevo
+            pilares.save()
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+def reporte_incidencias_general_pdf(request):
+    """Genera un PDF con TODAS las incidencias de todos los PILARES (formato mejorado)"""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from .models import ObservacionHistorial
+    import io
+    from datetime import datetime
+    
+    historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').order_by('-fecha_creacion')
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_incidencias_general_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                           rightMargin=1.5*cm, leftMargin=1.5*cm,
+                           topMargin=2*cm, bottomMargin=2*cm)
+    
+    styles = getSampleStyleSheet()
+    
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, alignment=TA_CENTER, spaceAfter=10, textColor=colors.HexColor('#2c3e50'))
+    subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Normal'], fontSize=10, alignment=TA_CENTER, spaceAfter=15)
+    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=8, leading=10, alignment=TA_LEFT)
+    obs_style = ParagraphStyle('ObsStyle', parent=styles['Normal'], fontSize=8, leading=10, alignment=TA_LEFT)
+    
+    elementos = []
+    
+    elementos.append(Paragraph("📋 Reporte General de Incidencias", title_style))
+    elementos.append(Paragraph("Sistema de Mantenimiento - PILARES CDMX", subtitle_style))
+    elementos.append(Paragraph(f"Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elementos.append(Spacer(1, 10))
+    
+    # Estadísticas
+    total = historial.count()
+    abiertas = historial.filter(estado_nuevo='ABIERTA').count()
+    en_proceso = historial.filter(estado_nuevo='EN_PROCESO').count()
+    solucionadas = historial.filter(estado_nuevo='SOLUCIONADA').count()
+    cerradas = historial.filter(estado_nuevo='CERRADA').count()
+    
+    resumen_data = [
+        ['Total', '🟡 Abiertas', '🔵 En proceso', '🟢 Solucionadas', '⚫ Cerradas'],
+        [str(total), str(abiertas), str(en_proceso), str(solucionadas), str(cerradas)]
+    ]
+    
+    tabla_resumen = Table(resumen_data, colWidths=[3*cm, 3*cm, 3*cm, 3*cm, 3*cm])
+    tabla_resumen.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+        ('FONTSIZE', (0, 1), (-1, -1), 12),
+    ]))
+    elementos.append(tabla_resumen)
+    elementos.append(Spacer(1, 20))
+    
+    # ============ SI HAY DATOS ============
+    if historial.exists():
+        historial_list = list(historial)
+        total_registros = len(historial_list)
+        batch_size = 15
+        
+        for start_idx in range(0, total_registros, batch_size):
+            batch = historial_list[start_idx:start_idx + batch_size]
+            
+            if start_idx > 0:
+                elementos.append(PageBreak())
+                elementos.append(Paragraph("📋 Reporte General de Incidencias (continuación)", title_style))
+                elementos.append(Spacer(1, 10))
+            
+            # ============ CONSTRUIR TABLA ============
+            table_data = [['#', 'Fecha', 'PILARES', 'Tipo', 'Estado', 'Observación']]
+            
+            for idx, h in enumerate(batch, start_idx + 1):
+                estado = h.estado_nuevo or 'ABIERTA'
+                color_fila = '#27ae60' if estado == 'SOLUCIONADA' else '#e74c3c' if estado == 'EN_PROCESO' else '#f39c12'
+                obs = h.observacion_nueva or '-'
+                obs_paragraph = Paragraph(obs, obs_style)
+                
+                table_data.append([
+                    str(idx),
+                    h.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
+                    Paragraph(h.pilares.nombre[:25], cell_style),
+                    Paragraph(h.get_tipo_cambio_display(), cell_style),
+                    Paragraph(f'<font color="{color_fila}">{h.get_estado_nuevo_display() or "Sin estado"}</font>', cell_style),
+                    obs_paragraph,
+                ])
+            
+            # ============ CREAR TABLA ============
+            tabla = Table(table_data, colWidths=[0.6*cm, 3.5*cm, 4*cm, 2.5*cm, 2.5*cm, 5.5*cm])
+            tabla.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor('#f9f9f9')]),
+                ('VALIGN', (0, 1), (-1, -1), 'TOP'),
+            ]))
+            elementos.append(tabla)
+            elementos.append(Spacer(1, 10))
+        
+        elementos.append(Spacer(1, 10))
+        elementos.append(Paragraph("Reporte generado automáticamente por el sistema PILARES CDMX", styles['Normal']))
+    
+    # ============ SI NO HAY DATOS ============
+    else:
+        elementos.append(Paragraph("No hay incidencias registradas", styles['Normal']))
+    
+    doc.build(elementos)
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    
+    return response
+# ============ REPORTE EXCEL GENERAL DE INCIDENCIAS ============
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+def reporte_incidencias_general_excel(request):
+    """Genera un Excel con TODAS las incidencias de todos los PILARES"""
+    from .models import ObservacionHistorial
+    from datetime import datetime
+    
+    historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').order_by('-fecha_creacion')
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="reporte_incidencias_general_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Incidencias"
+    
+    # Estilos
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='2C3E50', end_color='2C3E50', fill_type='solid')
+    header_alignment = Alignment(horizontal='center', vertical='center')
+    cell_alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    
+    # Encabezados
+    headers = ['#', 'Fecha', 'PILARES', 'Alcaldía', 'Zona', 'Tipo', 'Estado', 'Observación']
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    
+    # Datos
+    for idx, h in enumerate(historial, 1):
+        row = idx + 1
+        ws.cell(row=row, column=1, value=idx)
+        ws.cell(row=row, column=2, value=h.fecha_creacion.strftime('%d/%m/%Y %H:%M'))
+        ws.cell(row=row, column=3, value=h.pilares.nombre)
+        ws.cell(row=row, column=4, value=h.pilares.alcaldia)
+        ws.cell(row=row, column=5, value=h.pilares.zona)
+        ws.cell(row=row, column=6, value=h.get_tipo_cambio_display())
+        ws.cell(row=row, column=7, value=h.get_estado_nuevo_display() or 'Sin estado')
+        ws.cell(row=row, column=8, value=h.observacion_nueva or '-')
+        
+        # Aplicar alignment a todas las celdas de la fila
+        for col in range(1, 9):
+            ws.cell(row=row, column=col).alignment = cell_alignment
+    
+    # Ajustar ancho de columnas
+    column_widths = [4, 18, 30, 25, 15, 15, 20, 50]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = width
+    
+    wb.save(response)
+    return response
+

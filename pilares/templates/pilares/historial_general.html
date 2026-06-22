@@ -4,70 +4,315 @@
 {% block title %}Historial de Observaciones{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid px-3 px-md-4 py-3 py-md-4">
 
     <!-- Encabezado -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 mb-md-4">
         <div>
-            <h1 class="h2 fw-bold text-gray-800">
+            <h1 class="h3 h2-md fw-bold text-gray-800">
                 <i class="fas fa-history text-primary me-2"></i> Historial de Observaciones
             </h1>
-            <p class="text-muted">{{ total }} registros en total</p>
+            <p class="text-muted small mb-0">
+                <i class="fas fa-file-alt me-1"></i> {{ total }} registros en total
+            </p>
         </div>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Volver al Dashboard
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm btn-md">
+            <i class="fas fa-arrow-left me-1"></i> Volver
         </a>
     </div>
 
-    <!-- Tabla de historial -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped">
-                    <thead class="table-light">
-                        <tr>
-                            <th>PILARES</th>
-                            <th>Equipo afectado</th>
-                            <th>Estado</th>
-                            <th>Observación anterior</th>
-                            <th>Observación nueva</th>
-                            <th>Fecha</th>
-                            <th>Usuario</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for h in historial %}
-                        <tr>
-                            <td><strong>{{ h.pilares.nombre }}</strong></td>
-                            <td>{{ h.equipo_afectado|default:"-" }}</td>
-                            <td>
-                                {% if h.estado_nuevo == 'SOLUCIONADA' %}
-                                <span class="badge bg-success">{{ h.get_estado_nuevo_display|default:"-" }}</span>
-                                {% elif h.estado_nuevo == 'EN_PROCESO' %}
-                                <span class="badge bg-info">{{ h.get_estado_nuevo_display|default:"-" }}</span>
-                                {% elif h.estado_nuevo == 'ABIERTA' %}
-                                <span class="badge bg-danger">{{ h.get_estado_nuevo_display|default:"-" }}</span>
-                                {% else %}
-                                <span class="badge bg-secondary">{{ h.get_estado_nuevo_display|default:"-" }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-muted">{{ h.observacion_anterior|default:"-"|truncatechars:50 }}</td>
-                            <td>{{ h.observacion_nueva|default:"-"|truncatechars:50 }}</td>
-                            <td>{{ h.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                            <td>{{ h.usuario.username|default:"Sistema" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                                No hay registros de historial aún
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Filtros (opcional - mejora la experiencia) -->
+    <div class="card shadow-sm mb-3 mb-md-4">
+        <div class="card-body p-2 p-md-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="filtroHistorial" class="form-control" 
+                               placeholder="Buscar por PILARES...">
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <select id="filtroEstado" class="form-select form-select-sm">
+                        <option value="">Todos los estados</option>
+                        <option value="ABIERTA">🟡 Abierta</option>
+                        <option value="EN_PROCESO">🔵 En proceso</option>
+                        <option value="SOLUCIONADA">🟢 Solucionada</option>
+                        <option value="CERRADA">⚫ Cerrada</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <button id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="fas fa-undo me-1"></i> Limpiar
+                    </button>
+                </div>
+                <div class="col-12 col-md-2 text-md-end">
+                    <span class="badge bg-primary" id="contadorRegistros">{{ total }} registros</span>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- ============================================ -->
+    <!-- VISTA MÓVIL / ESCRITORIO                     -->
+    <!-- ============================================ -->
+    <div class="card shadow-sm">
+        <div class="card-body p-2 p-md-3" id="historialContainer">
+            
+            <!-- ============ VISTA ESCRITORIO (tabla) ============ -->
+            <div class="d-none d-md-block">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-sm" id="tablaHistorial">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="min-width: 150px;">PILARES</th>
+                                <th style="min-width: 100px;">Equipo</th>
+                                <th style="min-width: 100px;">Estado</th>
+                                <th style="min-width: 150px;">Observación anterior</th>
+                                <th style="min-width: 150px;">Observación nueva</th>
+                                <th style="min-width: 120px;">Fecha</th>
+                                <th style="min-width: 80px;">Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaHistorialBody">
+                            {% for h in historial %}
+                            <tr data-pilares="{{ h.pilares.nombre|lower }}" data-estado="{{ h.estado_nuevo }}">
+                                <td>
+                                    <strong>{{ h.pilares.nombre }}</strong>
+                                    <br><small class="text-muted">{{ h.pilares.clave_id }}</small>
+                                </td>
+                                <td>{{ h.equipo_afectado|default:"-" }}</td>
+                                <td>
+                                    {% if h.estado_nuevo == 'SOLUCIONADA' %}
+                                    <span class="badge bg-success">🟢 {{ h.get_estado_nuevo_display|default:"-" }}</span>
+                                    {% elif h.estado_nuevo == 'EN_PROCESO' %}
+                                    <span class="badge bg-info">🔵 {{ h.get_estado_nuevo_display|default:"-" }}</span>
+                                    {% elif h.estado_nuevo == 'ABIERTA' %}
+                                    <span class="badge bg-danger">🟡 {{ h.get_estado_nuevo_display|default:"-" }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">⚫ {{ h.get_estado_nuevo_display|default:"-" }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ h.observacion_anterior|default:"—"|truncatechars:40 }}</td>
+                                <td class="small">{{ h.observacion_nueva|default:"—"|truncatechars:40 }}</td>
+                                <td><small>{{ h.fecha_creacion|date:"d/m/Y H:i" }}</small></td>
+                                <td><small>{{ h.usuario.username|default:"Sistema" }}</small></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                    No hay registros de historial aún
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============ VISTA MÓVIL (tarjetas) ============ -->
+            <div class="d-md-none" id="vistaMovilHistorial">
+                {% for h in historial %}
+                <div class="card mb-2 shadow-sm historial-card" data-pilares="{{ h.pilares.nombre|lower }}" data-estado="{{ h.estado_nuevo }}">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong class="fs-6">{{ h.pilares.nombre }}</strong>
+                                <br><small class="text-muted">{{ h.pilares.clave_id }}</small>
+                            </div>
+                            <div>
+                                {% if h.estado_nuevo == 'SOLUCIONADA' %}
+                                <span class="badge bg-success">🟢</span>
+                                {% elif h.estado_nuevo == 'EN_PROCESO' %}
+                                <span class="badge bg-info">🔵</span>
+                                {% elif h.estado_nuevo == 'ABIERTA' %}
+                                <span class="badge bg-danger">🟡</span>
+                                {% else %}
+                                <span class="badge bg-secondary">⚫</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row g-1 mt-1 small">
+                            <div class="col-6">
+                                <span class="text-muted">Equipo:</span>
+                                <span>{{ h.equipo_afectado|default:"—" }}</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="text-muted">Estado:</span>
+                                <span>
+                                    {% if h.estado_nuevo == 'SOLUCIONADA' %}
+                                    <span class="text-success">Solucionada</span>
+                                    {% elif h.estado_nuevo == 'EN_PROCESO' %}
+                                    <span class="text-info">En proceso</span>
+                                    {% elif h.estado_nuevo == 'ABIERTA' %}
+                                    <span class="text-danger">Abierta</span>
+                                    {% else %}
+                                    <span class="text-secondary">Cerrada</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-1 mt-1 small">
+                            <div class="col-12">
+                                <span class="text-muted">Observación anterior:</span>
+                                <span class="text-muted">{{ h.observacion_anterior|default:"—"|truncatechars:30 }}</span>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted">Observación nueva:</span>
+                                <span>{{ h.observacion_nueva|default:"—"|truncatechars:30 }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>{{ h.fecha_creacion|date:"d/m/Y H:i" }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="far fa-user me-1"></i>{{ h.usuario.username|default:"Sistema" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                    No hay registros de historial aún
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Paginación (opcional - si tienes más de 50 registros) -->
+    {% if historial.paginator %}
+    <div class="d-flex justify-content-center mt-3">
+        <nav aria-label="Navegación de historial">
+            <ul class="pagination pagination-sm">
+                {% if historial.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ historial.previous_page_number }}">Anterior</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ historial.number }}</span></li>
+                {% if historial.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ historial.next_page_number }}">Siguiente</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ historial.paginator.num_pages }}">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+    // ============================================================
+    // FILTROS EN TIEMPO REAL
+    // ============================================================
+    const filtroPilares = document.getElementById('filtroHistorial');
+    const filtroEstado = document.getElementById('filtroEstado');
+    const btnLimpiar = document.getElementById('btnLimpiarFiltros');
+    const contador = document.getElementById('contadorRegistros');
+
+    function filtrarHistorial() {
+        const texto = filtroPilares.value.toLowerCase().trim();
+        const estado = filtroEstado.value;
+
+        // Para vista escritorio (tabla)
+        const filas = document.querySelectorAll('#tablaHistorialBody tr');
+        let visibles = 0;
+
+        filas.forEach(fila => {
+            const pilares = fila.dataset.pilares || '';
+            const filaEstado = fila.dataset.estado || '';
+            
+            const coincideTexto = pilares.includes(texto);
+            const coincideEstado = !estado || filaEstado === estado;
+            
+            if (coincideTexto && coincideEstado) {
+                fila.style.display = '';
+                visibles++;
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+
+        // Para vista móvil (tarjetas)
+        const tarjetas = document.querySelectorAll('#vistaMovilHistorial .historial-card');
+        tarjetas.forEach(tarjeta => {
+            const pilares = tarjeta.dataset.pilares || '';
+            const tarjetaEstado = tarjeta.dataset.estado || '';
+            
+            const coincideTexto = pilares.includes(texto);
+            const coincideEstado = !estado || tarjetaEstado === estado;
+            
+            tarjeta.style.display = (coincideTexto && coincideEstado) ? '' : 'none';
+        });
+
+        // Actualizar contador
+        contador.textContent = `${visibles} registros`;
+    }
+
+    // Eventos de filtro
+    filtroPilares.addEventListener('input', filtrarHistorial);
+    filtroEstado.addEventListener('change', filtrarHistorial);
+
+    // Limpiar filtros
+    btnLimpiar.addEventListener('click', function() {
+        filtroPilares.value = '';
+        filtroEstado.value = '';
+        filtrarHistorial();
+    });
+
+    // Inicializar contador
+    document.addEventListener('DOMContentLoaded', function() {
+        const totalFilas = document.querySelectorAll('#tablaHistorialBody tr:not([style*="display: none"])').length;
+        if (totalFilas > 0) {
+            contador.textContent = `${totalFilas} registros`;
+        }
+    });
+</script>
+
+<style>
+    /* Mejoras para móvil */
+    @media (max-width: 767.98px) {
+        .historial-card {
+            border-left: 4px solid #6c757d;
+            transition: all 0.2s;
+        }
+        .historial-card:active {
+            transform: scale(0.98);
+        }
+        /* Color de borde según estado en móvil */
+        .historial-card[data-estado="SOLUCIONADA"] {
+            border-left-color: #198754 !important;
+        }
+        .historial-card[data-estado="EN_PROCESO"] {
+            border-left-color: #0dcaf0 !important;
+        }
+        .historial-card[data-estado="ABIERTA"] {
+            border-left-color: #dc3545 !important;
+        }
+        .historial-card[data-estado="CERRADA"] {
+            border-left-color: #6c757d !important;
+        }
+    }
+    
+    /* Efecto hover en escritorio */
+    @media (min-width: 768px) {
+        #tablaHistorial tbody tr {
+            transition: background-color 0.2s;
+        }
+        #tablaHistorial tbody tr:hover {
+            background-color: #f0f8ff !important;
+        }
+    }
+    
+    /* Scroll suave en móvil */
+    .table-responsive {
+        scroll-behavior: smooth;
+    }
+</style>
 {% endblock %}

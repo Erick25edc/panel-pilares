@@ -475,17 +475,19 @@ def api_incidencias_pilares(request, clave_id):
 def historial_general(request):
     """Vista del historial general de observaciones"""
     try:
-        from .models import ObservacionHistorial
-        historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').all()[:100]
+        from .models import ObservacionHistorial, Pilares
+        historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').all().order_by('-fecha_creacion')[:100]
         total = ObservacionHistorial.objects.count()
+        pilares_list = Pilares.objects.all().order_by('clave_id')  # ← Agrega esto
     except:
-        # Si el modelo no existe, mostrar vacío
         historial = []
         total = 0
+        pilares_list = []  # ← Agrega esto
     
     context = {
         'historial': historial,
         'total': total,
+        'pilares_list': pilares_list,  # ← Agrega esto
     }
     return render(request, 'pilares/historial_general.html', context)
 

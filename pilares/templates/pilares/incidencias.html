@@ -4,50 +4,50 @@
 {% block title %}Incidencias - PILARES CDMX{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid px-3 px-md-4 py-3 py-md-4">
 
     <!-- Encabezado -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 mb-md-4">
         <div>
-            <h1 class="h2 fw-bold text-gray-800">
+            <h1 class="h3 h2-md fw-bold text-gray-800">
                 <i class="fas fa-exclamation-triangle text-danger me-2"></i> Incidencias
             </h1>
-            <p class="text-muted">Crear y gestionar incidencias por PILARES</p>
+            <p class="text-muted small">Crear y gestionar incidencias por PILARES</p>
         </div>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Volver al Dashboard
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm btn-md">
+            <i class="fas fa-arrow-left me-1"></i> Volver
         </a>
     </div>
 
     <!-- ============================================ -->
     <!-- FORMULARIO PARA CREAR INCIDENCIA              -->
     <!-- ============================================ -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0 text-success">
+    <div class="card shadow-sm mb-3 mb-md-4">
+        <div class="card-header bg-white py-2 py-md-3">
+            <h5 class="mb-0 text-success fs-6 fs-md-5">
                 <i class="fas fa-plus-circle me-2"></i> Nueva Incidencia
             </h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-2 p-md-3">
             <div class="row g-2">
-                <div class="col-md-4">
-                    <!-- En incidencias.html -->
-                    <select name="pilares">
-                        {% for p in pilares_list|dictsort:"clave_id" %}
-                            <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre }}</option>
+                <div class="col-12 col-md-4">
+                    <select id="selectPilaresNuevo" class="form-select form-select-sm">
+                        <option value="">-- Seleccionar --</option>
+                        {% for p in pilares_list %}
+                        <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre|truncatechars:30 }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <input type="text" id="incidenciaEquipo" class="form-control"
-                        placeholder="Equipo afectado (ej: CPU-01)">
+                <div class="col-6 col-md-3">
+                    <input type="text" id="incidenciaEquipo" class="form-control form-control-sm"
+                        placeholder="Equipo afectado">
                 </div>
-                <div class="col-md-4">
-                    <textarea id="incidenciaObservacion" class="form-control" rows="1"
-                        placeholder="Descripción de la incidencia..."></textarea>
+                <div class="col-5 col-md-4">
+                    <textarea id="incidenciaObservacion" class="form-control form-control-sm" rows="1"
+                        placeholder="Descripción..."></textarea>
                 </div>
-                <div class="col-md-1">
-                    <button id="btnGuardarIncidencia" class="btn btn-success w-100">
+                <div class="col-1 col-md-1">
+                    <button id="btnGuardarIncidencia" class="btn btn-success btn-sm w-100">
                         <i class="fas fa-save"></i>
                     </button>
                 </div>
@@ -58,36 +58,37 @@
     <!-- ============================================ -->
     <!-- CONSULTAR INCIDENCIAS                         -->
     <!-- ============================================ -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0 text-primary">
+    <div class="card shadow-sm mb-3 mb-md-4">
+        <div class="card-header bg-white py-2 py-md-3">
+            <h5 class="mb-0 text-primary fs-6 fs-md-5">
                 <i class="fas fa-search me-2"></i> Consultar Incidencias
             </h5>
         </div>
-        <div class="row g-2">
-            <div class="col-md-4">
-                <!-- En incidencias.html -->
-                <select name="pilares">
-                    {% for p in pilares_list|dictsort:"clave_id" %}
-                        <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button id="btnCargarIncidencias" class="btn btn-primary w-100">
-                    <i class="fas fa-search me-1"></i> Cargar
-                </button>
-            </div>
-           
-            <div class="col-md-2">
-                <button id="btnReporteGeneralPdf" class="btn btn-danger w-100">
-                    <i class="fas fa-file-pdf me-1"></i> PDF General
-                </button>
-            </div>
-            <div class="col-md-2">
-                <button id="btnReporteGeneralExcel" class="btn btn-success w-100">
-                    <i class="fas fa-file-excel me-1"></i> Excel General
-                </button>
+        <div class="card-body p-2 p-md-3">
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <select id="selectPilaresIncidencias" class="form-select form-select-sm">
+                        <option value="">-- Seleccionar --</option>
+                        {% for p in pilares_list %}
+                        <option value="{{ p.clave_id }}">{{ p.clave_id }} - {{ p.nombre|truncatechars:30 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-4 col-md-2">
+                    <button id="btnCargarIncidencias" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-search me-1"></i> Cargar
+                    </button>
+                </div>
+                <div class="col-4 col-md-2">
+                    <button id="btnReporteGeneralPdf" class="btn btn-danger btn-sm w-100">
+                        <i class="fas fa-file-pdf me-1"></i> PDF
+                    </button>
+                </div>
+                <div class="col-4 col-md-2">
+                    <button id="btnReporteGeneralExcel" class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-file-excel me-1"></i> Excel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -96,10 +97,10 @@
     <!-- TABLA DE RESULTADOS                          -->
     <!-- ============================================ -->
     <div class="card shadow-sm">
-        <div class="card-body" id="incidenciasResultados">
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-inbox fa-3x mb-3 d-block text-muted"></i>
-                <p>Selecciona un PILARES para ver sus incidencias</p>
+        <div class="card-body p-2 p-md-3" id="incidenciasResultados">
+            <div class="text-center text-muted py-4 py-md-5">
+                <i class="fas fa-inbox fa-2x fa-md-3x mb-2 mb-md-3 d-block text-muted"></i>
+                <p class="small mb-0">Selecciona un PILARES para ver sus incidencias</p>
             </div>
         </div>
     </div>
@@ -134,25 +135,25 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✅ Incidencia creada correctamente');
-                    document.getElementById('incidenciaEquipo').value = '';
-                    document.getElementById('incidenciaObservacion').value = '';
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Incidencia creada correctamente');
+                document.getElementById('incidenciaEquipo').value = '';
+                document.getElementById('incidenciaObservacion').value = '';
 
-                    const claveActual = document.getElementById('selectPilaresIncidencias').value;
-                    if (claveActual === claveId) {
-                        document.getElementById('btnCargarIncidencias').click();
-                    }
-                } else {
-                    alert('❌ Error: ' + data.error);
+                const claveActual = document.getElementById('selectPilaresIncidencias').value;
+                if (claveActual === claveId) {
+                    document.getElementById('btnCargarIncidencias').click();
                 }
-            })
-            .catch(error => {
-                alert('Error de conexión');
-                console.error(error);
-            });
+            } else {
+                alert('❌ Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error de conexión');
+            console.error(error);
+        });
     });
 
     // ============================================================
@@ -177,96 +178,168 @@
     });
 
     // ============================================================
-    // 3. RENDERIZAR TABLA
+    // 3. RENDERIZAR TABLA (MEJORADA PARA MÓVIL)
     // ============================================================
     function renderizarIncidencias(data) {
         const container = document.getElementById('incidenciasResultados');
 
         if (!data || data.length === 0) {
             container.innerHTML = `
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-check-circle fa-3x mb-3 d-block text-success"></i>
-                <p>No hay incidencias registradas para este PILARES</p>
-            </div>
-        `;
+                <div class="text-center text-muted py-4 py-md-5">
+                    <i class="fas fa-check-circle fa-2x fa-md-3x mb-2 mb-md-3 d-block text-success"></i>
+                    <p class="small mb-0">No hay incidencias registradas para este PILARES</p>
+                </div>
+            `;
             return;
         }
 
-        let html = `
-        <div class="table-responsive">
-            <table class="table table-hover table-striped">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Fecha</th>
-                        <th>Tipo</th>
-                        <th>Estado</th>
-                        <th>Observación</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+        // Detectar si es móvil
+        const isMobile = window.innerWidth < 768;
 
-        data.forEach((h, idx) => {
-            // Opciones de estado
-            const estados = ['ABIERTA', 'EN_PROCESO', 'SOLUCIONADA', 'CERRADA'];
-            const estadoLabels = {
-                'ABIERTA': '🟡 Abierta',
-                'EN_PROCESO': '🔵 En proceso',
-                'SOLUCIONADA': '🟢 Solucionada',
-                'CERRADA': '⚫ Cerrada'
-            };
-            const estadoClass = {
-                'ABIERTA': 'bg-danger',
-                'EN_PROCESO': 'bg-info',
-                'SOLUCIONADA': 'bg-success',
-                'CERRADA': 'bg-secondary'
-            };
+        if (isMobile) {
+            // ============ VISTA MÓVIL (tarjetas) ============
+            let html = `<div class="row g-2">`;
+            
+            data.forEach((h, idx) => {
+                const estadoLabels = {
+                    'ABIERTA': '🟡 Abierta',
+                    'EN_PROCESO': '🔵 En proceso',
+                    'SOLUCIONADA': '🟢 Solucionada',
+                    'CERRADA': '⚫ Cerrada'
+                };
+                const estadoClass = {
+                    'ABIERTA': 'danger',
+                    'EN_PROCESO': 'info',
+                    'SOLUCIONADA': 'success',
+                    'CERRADA': 'secondary'
+                };
 
-            // Construir opciones del select
-            let optionsHtml = '';
-            estados.forEach(est => {
-                const selected = est === h.estado_nuevo ? 'selected' : '';
-                optionsHtml += `<option value="${est}" ${selected}>${estadoLabels[est]}</option>`;
+                const estados = ['ABIERTA', 'EN_PROCESO', 'SOLUCIONADA', 'CERRADA'];
+                let optionsHtml = '';
+                estados.forEach(est => {
+                    const selected = est === h.estado_nuevo ? 'selected' : '';
+                    optionsHtml += `<option value="${est}" ${selected}>${estadoLabels[est]}</option>`;
+                });
+
+                html += `
+                    <div class="col-12">
+                        <div class="card border-${estadoClass[h.estado_nuevo] || 'secondary'} border-start border-4 shadow-sm">
+                            <div class="card-body py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <small class="text-muted">#${idx + 1}</small>
+                                    <small class="text-muted">${h.fecha_creacion}</small>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 my-1">
+                                    <span class="badge bg-secondary">${h.tipo_cambio_display}</span>
+                                    <span class="badge bg-${estadoClass[h.estado_nuevo] || 'secondary'}">${estadoLabels[h.estado_nuevo]}</span>
+                                </div>
+                                <p class="small mb-1 text-break">${h.observacion_nueva || '-'}</p>
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    <select class="form-select form-select-sm estado-select" 
+                                            data-id="${h.id}" 
+                                            style="width: 120px; font-size: 0.7rem; flex: 1;">
+                                        ${optionsHtml}
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-primary editar-incidencia flex-shrink-0" 
+                                            data-id="${h.id}" 
+                                            data-observacion="${h.observacion_nueva}" 
+                                            data-estado="${h.estado_nuevo}"
+                                            title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success actualizar-estado-btn flex-shrink-0" 
+                                            data-id="${h.id}"
+                                            title="Actualizar">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
 
-            html += `
-            <tr>
-                <td>${idx + 1}</td>
-                <td>${h.fecha_creacion}</td>
-                <td><span class="badge bg-secondary">${h.tipo_cambio_display}</span></td>
-                <td>
-                    <select class="form-select form-select-sm estado-select" 
-                            data-id="${h.id}" 
-                            style="min-width: 140px; font-size: 0.8rem;">
-                        ${optionsHtml}
-                    </select>
-                </td>
-                <td>${h.observacion_nueva || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary editar-incidencia" 
-                            data-id="${h.id}" 
-                            data-observacion="${h.observacion_nueva}" 
-                            data-estado="${h.estado_nuevo}"
-                            title="Editar observación">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-success actualizar-estado-btn" 
-                            data-id="${h.id}"
-                            title="Actualizar estado">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        });
+            html += `</div>`;
+            container.innerHTML = html;
 
-        html += `</tbody></table></div>`;
-        container.innerHTML = html;
+        } else {
+            // ============ VISTA ESCRITORIO (tabla) ============
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Observación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach((h, idx) => {
+                const estadoLabels = {
+                    'ABIERTA': '🟡 Abierta',
+                    'EN_PROCESO': '🔵 En proceso',
+                    'SOLUCIONADA': '🟢 Solucionada',
+                    'CERRADA': '⚫ Cerrada'
+                };
+                const estadoClass = {
+                    'ABIERTA': 'danger',
+                    'EN_PROCESO': 'info',
+                    'SOLUCIONADA': 'success',
+                    'CERRADA': 'secondary'
+                };
+
+                const estados = ['ABIERTA', 'EN_PROCESO', 'SOLUCIONADA', 'CERRADA'];
+                let optionsHtml = '';
+                estados.forEach(est => {
+                    const selected = est === h.estado_nuevo ? 'selected' : '';
+                    optionsHtml += `<option value="${est}" ${selected}>${estadoLabels[est]}</option>`;
+                });
+
+                html += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><small>${h.fecha_creacion}</small></td>
+                        <td><span class="badge bg-secondary">${h.tipo_cambio_display}</span></td>
+                        <td>
+                            <select class="form-select form-select-sm estado-select" 
+                                    data-id="${h.id}" 
+                                    style="min-width: 130px; font-size: 0.75rem;">
+                                ${optionsHtml}
+                            </select>
+                        </td>
+                        <td><small class="text-break">${h.observacion_nueva || '-'}</small></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary editar-incidencia" 
+                                        data-id="${h.id}" 
+                                        data-observacion="${h.observacion_nueva}" 
+                                        data-estado="${h.estado_nuevo}"
+                                        title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-success actualizar-estado-btn" 
+                                        data-id="${h.id}"
+                                        title="Actualizar estado">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
 
         // ============================================================
-        // 4. CAMBIAR ESTADO (evento delegado)
+        // 4. EVENTOS PARA ACTUALIZAR Y EDITAR
         // ============================================================
         container.querySelectorAll('.actualizar-estado-btn').forEach(btn => {
             btn.addEventListener('click', function () {
@@ -274,7 +347,6 @@
                 const select = container.querySelector(`.estado-select[data-id="${id}"]`);
                 const nuevoEstado = select.value;
 
-                // Confirmar cambio
                 const estadoLabels = {
                     'ABIERTA': '🟡 Abierta',
                     'EN_PROCESO': '🔵 En proceso',
@@ -286,34 +358,29 @@
                     return;
                 }
 
-                const data = {
-                    estado: nuevoEstado
-                };
+                const data = { estado: nuevoEstado };
 
                 fetch(`/api/incidencia/${id}/actualizar/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('✅ Estado actualizado correctamente');
-                            document.getElementById('btnCargarIncidencias').click();
-                        } else {
-                            alert('❌ Error: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Error de conexión');
-                        console.error(error);
-                    });
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Estado actualizado');
+                        document.getElementById('btnCargarIncidencias').click();
+                    } else {
+                        alert('❌ Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error de conexión');
+                    console.error(error);
+                });
             });
         });
 
-        // ============================================================
-        // 5. EDITAR OBSERVACIÓN (evento delegado)
-        // ============================================================
         container.querySelectorAll('.editar-incidencia').forEach(btn => {
             btn.addEventListener('click', function () {
                 const id = this.dataset.id;
@@ -322,54 +389,62 @@
                 const nuevaObservacion = prompt('Editar observación:', observacionActual);
                 if (nuevaObservacion === null) return;
 
-                const data = {
-                    observacion: nuevaObservacion
-                };
+                const data = { observacion: nuevaObservacion };
 
                 fetch(`/api/incidencia/${id}/actualizar/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('✅ Observación actualizada');
-                            document.getElementById('btnCargarIncidencias').click();
-                        } else {
-                            alert('❌ Error: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Error de conexión');
-                        console.error(error);
-                    });
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Observación actualizada');
+                        document.getElementById('btnCargarIncidencias').click();
+                    } else {
+                        alert('❌ Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error de conexión');
+                    console.error(error);
+                });
             });
         });
     }
 
-
     // ============================================================
-    // 6. REPORTE PDF GENERAL
+    // 5. REPORTES
     // ============================================================
     document.getElementById('btnReporteGeneralPdf').addEventListener('click', function () {
         window.open('/reporte-incidencias-general-pdf/', '_blank');
     });
 
-    // ============================================================
-    // 7. REPORTE EXCEL GENERAL
-    // ============================================================
     document.getElementById('btnReporteGeneralExcel').addEventListener('click', function () {
         window.open('/reporte-incidencias-general-excel/', '_blank');
     });
 
     // ============================================================
-    // 6. CARGAR INCIDENCIAS AL CAMBIAR SELECT (opcional)
+    // 6. CARGAR INCIDENCIAS AL CAMBIAR SELECT
     // ============================================================
     document.getElementById('selectPilaresIncidencias').addEventListener('change', function () {
         if (this.value) {
             document.getElementById('btnCargarIncidencias').click();
         }
+    });
+
+    // ============================================================
+    // 7. REDIMENSIONAR - cambiar vista al redimensionar
+    // ============================================================
+    let timeout;
+    window.addEventListener('resize', function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            const claveId = document.getElementById('selectPilaresIncidencias').value;
+            if (claveId) {
+                document.getElementById('btnCargarIncidencias').click();
+            }
+        }, 300);
     });
 </script>
 {% endblock %}

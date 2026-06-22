@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.contrib.auth.models import User
+
+
 
 class Pilares(models.Model):
     """Modelo para los PILARES de CDMX"""
@@ -113,3 +117,43 @@ class EquipoNoFuncional(models.Model):
         verbose_name = 'Equipo no funcional'
         verbose_name_plural = 'Equipos no funcionales'
         ordering = ['-fecha_reporte']
+
+class ObservacionHistorial(models.Model):
+    """Historial de cambios en observaciones de PILARES"""
+    
+    TIPO_CAMBIO = [
+        ('CREACION', 'Creación'),
+        ('ACTUALIZACION', 'Actualización'),
+        ('SOLUCION', 'Solución'),
+        ('CIERRE', 'Cierre'),
+    ]
+    
+    ESTADO_INCIDENCIA = [
+        ('ABIERTA', '🟡 Abierta'),
+        ('EN_PROCESO', '🔵 En proceso'),
+        ('SOLUCIONADA', '🟢 Solucionada'),
+        ('CERRADA', '⚫ Cerrada'),
+    ]
+    
+    pilares = models.ForeignKey('Pilares', on_delete=models.CASCADE, related_name='historial_observaciones')
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    observacion_anterior = models.TextField('Observación anterior', blank=True)
+    observacion_nueva = models.TextField('Observación nueva', blank=True)
+    
+    equipo_afectado = models.CharField('Equipo afectado', max_length=100, blank=True)
+    tipo_cambio = models.CharField('Tipo de cambio', max_length=20, choices=TIPO_CAMBIO, default='ACTUALIZACION')
+    
+    estado_anterior = models.CharField('Estado anterior', max_length=20, choices=ESTADO_INCIDENCIA, blank=True)
+    estado_nuevo = models.CharField('Estado nuevo', max_length=20, choices=ESTADO_INCIDENCIA, blank=True)
+    
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    ip_usuario = models.GenericIPAddressField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.pilares.nombre} - {self.fecha_creacion.strftime('%Y-%m-%d %H:%M')}"
+    
+    class Meta:
+        verbose_name = 'Historial de observación'
+        verbose_name_plural = 'Historial de observaciones'
+        ordering = ['-fecha_creacion']

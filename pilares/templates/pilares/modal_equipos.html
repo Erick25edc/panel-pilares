@@ -1,0 +1,178 @@
+<!-- Modal para gestión de equipos -->
+<div class="modal fade" id="equiposModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="equiposModalTitle">
+                    <i class="fas fa-server me-2"></i> Gestión de Equipos - <span id="pilaresNombreModal">Cargando...</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Resumen -->
+                <div class="row mb-3" id="resumenEquipos">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success">
+                            <div class="card-body text-center">
+                                <h4 class="mb-0" id="total8gb">0</h4>
+                                <small>✅ 8GB RAM</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body text-center">
+                                <h4 class="mb-0" id="totalActualizados">0</h4>
+                                <small>🟡 Actualizados</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-danger">
+                            <div class="card-body text-center">
+                                <h4 class="mb-0" id="totalPendientes">0</h4>
+                                <small>🔴 4GB Pendientes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-secondary">
+                            <div class="card-body text-center">
+                                <h4 class="mb-0" id="totalEquipos">0</h4>
+                                <small>📊 Total equipos</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button id="btnAgregarEquipoModal" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Agregar equipo
+                        </button>
+                        <button id="btnExportarEquiposExcel" class="btn btn-info btn-sm text-white">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button id="btnImportarCSVEquipos" class="btn btn-warning btn-sm text-dark">
+                            <i class="fas fa-upload"></i> Importar CSV
+                        </button>
+                        <span class="ms-3 text-muted" id="equiposInfo">0 equipos</span>
+                    </div>
+                </div>
+
+                <!-- Tabla de equipos -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="equiposDetalleTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Hostname</th>
+                                <th>RAM Actual</th>
+                                <th>RAM Actualizada</th>
+                                <th>Estatus</th>
+                                <th>Pasta</th>
+                                <th>Mouse</th>
+                                <th>Teclado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equiposDetalleBody">
+                            <tr><td colspan="9" class="text-center text-muted">Selecciona un PILARES para ver sus equipos</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar equipo -->
+<div class="modal fade" id="editarEquipoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarEquipoModalTitle">
+                    <i class="fas fa-edit me-2"></i> <span id="editarEquipoTitle">Agregar Equipo</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editEquipoId">
+                <input type="hidden" id="editPilaresId">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hostname:</label>
+                    <input type="text" id="editHostname" class="form-control" placeholder="Ej: 001-NT-GAM-01">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">RAM Actual (GB):</label>
+                        <input type="number" id="editRamActual" class="form-control" min="0" value="4">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">RAM Actualizada (GB):</label>
+                        <input type="number" id="editRamActualizada" class="form-control" min="0" placeholder="Opcional">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Estatus:</label>
+                    <select id="editEstatus" class="form-select">
+                        <option value="PENDIENTE">⚠️ Pendiente</option>
+                        <option value="4GB">🔴 4GB</option>
+                        <option value="8GB">✅ 8GB</option>
+                        <option value="ACTUALIZADO">🟡 Actualizado</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" id="editPastaTermica" class="form-check-input">
+                        <label class="form-check-label" for="editPastaTermica">✅ Pasta térmica cambiada</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Mouse nuevos:</label>
+                        <input type="number" id="editMouseNuevo" class="form-control" min="0" value="0">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Teclados nuevos:</label>
+                        <input type="number" id="editTecladoNuevo" class="form-control" min="0" value="0">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Observaciones:</label>
+                    <textarea id="editObservaciones" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="saveEquipoDetalleBtn" class="btn btn-primary">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para importar CSV -->
+<div class="modal fade" id="importarCSVModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-upload me-2"></i> Importar CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Pega el contenido de tu archivo CSV con los equipos.</p>
+                <p><strong>Formato esperado:</strong> Hostname,RAM Actual,RAM Actualizada,Estatus,Pasta térmica,Mouse nuevos,Teclados nuevos,Observaciones</p>
+                <textarea id="csvImportText" class="form-control" rows="10" placeholder="Ej:&#10;001-NT-GAM-01,8,16,8GB,Sí,2,1,Equipo principal&#10;001-NT-GAM-02,4,8,Actualizado,No,1,0"></textarea>
+                <div class="mt-2" id="csvImportResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnProcesarCSV" class="btn btn-primary">📤 Procesar CSV</button>
+            </div>
+        </div>
+    </div>
+</div>

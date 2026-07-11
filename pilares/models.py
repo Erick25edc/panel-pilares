@@ -157,3 +157,68 @@ class ObservacionHistorial(models.Model):
         verbose_name = 'Historial de observación'
         verbose_name_plural = 'Historial de observaciones'
         ordering = ['-fecha_creacion']
+
+class EquipoDetalle(models.Model):
+    """Modelo para equipos detallados por PILARES"""
+    
+    ESTATUS_CHOICES = [
+        ('8GB', '✅ 8GB'),
+        ('4GB', '🔴 4GB'),
+        ('ACTUALIZADO', '🟡 Actualizado'),
+        ('PENDIENTE', '⚠️ Pendiente'),
+    ]
+    
+    # Relación con PILARES
+    pilares = models.ForeignKey('Pilares', on_delete=models.CASCADE, related_name='equipos_detalle')
+    
+    # Identificación del equipo
+    hostname = models.CharField('Hostname/CCT', max_length=50, unique=True)
+    
+    # RAM
+    ram_actual = models.IntegerField('RAM Actual (GB)', default=0)
+    ram_actualizada = models.IntegerField('RAM Actualizada (GB)', default=0, blank=True, null=True)
+    
+    # Estado
+    estatus = models.CharField('Estatus', max_length=20, choices=ESTATUS_CHOICES, default='PENDIENTE')
+    
+    # Mantenimiento
+    pasta_termica = models.BooleanField('Pasta térmica cambiada', default=False)
+    mouse_nuevo = models.IntegerField('Mouse nuevos', default=0)
+    teclado_nuevo = models.IntegerField('Teclados nuevos', default=0)
+    
+    # Observaciones
+    observaciones = models.TextField('Observaciones', blank=True)
+    
+    # Fechas
+    fecha_registro = models.DateField('Fecha de registro', auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.hostname} - {self.pilares.nombre}"
+    
+    @property
+    def color_estatus(self):
+        """Devuelve el color según el estatus"""
+        colores = {
+            '8GB': 'success',
+            '4GB': 'danger',
+            'ACTUALIZADO': 'warning',
+            'PENDIENTE': 'secondary',
+        }
+        return colores.get(self.estatus, 'secondary')
+    
+    @property
+    def icono_estatus(self):
+        """Devuelve el icono según el estatus"""
+        iconos = {
+            '8GB': '✅',
+            '4GB': '🔴',
+            'ACTUALIZADO': '🟡',
+            'PENDIENTE': '⚠️',
+        }
+        return iconos.get(self.estatus, '❓')
+    
+    class Meta:
+        verbose_name = 'Equipo detalle'
+        verbose_name_plural = 'Equipos detalle'
+        ordering = ['pilares__nombre', 'hostname']

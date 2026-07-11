@@ -14,6 +14,12 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_CENTER
 import io
+from .models import EquipoDetalle
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
+from django.http import HttpResponse
+
 
 # ============ FUNCIÓN PARA VERIFICAR SI ES ADMIN ============
 def es_admin(user):
@@ -475,19 +481,17 @@ def api_incidencias_pilares(request, clave_id):
 def historial_general(request):
     """Vista del historial general de observaciones"""
     try:
-        from .models import ObservacionHistorial, Pilares
-        historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').all().order_by('-fecha_creacion')[:100]
+        from .models import ObservacionHistorial
+        historial = ObservacionHistorial.objects.select_related('pilares', 'usuario').all()[:100]
         total = ObservacionHistorial.objects.count()
-        pilares_list = Pilares.objects.all().order_by('clave_id')  # ← Agrega esto
     except:
+        # Si el modelo no existe, mostrar vacío
         historial = []
         total = 0
-        pilares_list = []  # ← Agrega esto
     
     context = {
         'historial': historial,
         'total': total,
-        'pilares_list': pilares_list,  # ← Agrega esto
     }
     return render(request, 'pilares/historial_general.html', context)
 
@@ -739,3 +743,207 @@ def reporte_incidencias_general_excel(request):
     wb.save(response)
     return response
 
+# ============ API EQUIPOS DETALLE ============
+def api_equipos_detalle(request, clave_id):
+    """API para obtener equipos detalle de un PILARES"""
+    equipos = EquipoDetalle.objects.filter(pilares__clave_id=clave_id).order_by('hostname')
+    
+    data = []
+    for e in equipos:
+        data.append({
+            'id': e.id,
+            'hostname': e.hostname,
+            'ram_actual': e.ram_actual,
+            'ram_actualizada': e.ram_actualizada or '-',
+            'estatus': e.get_estatus_display(),
+            'estatus_valor': e.estatus,
+            'pasta_termica': e.pasta_termica,
+            'mouse_nuevo': e.mouse_nuevo,
+            'teclado_nuevo': e.teclado_nuevo,
+            'observaciones': e.observaciones,
+        })
+    
+    return JsonResponse(data, safe=False)
+
+@csrf_exempt
+@login_required
+def agregar_equipo_detalle(request):
+    """API para agregar un equipo detalle"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            pilares = Pilares.objects.get(clave_id=data.get('pilares_id'))
+            
+            equipo = EquipoDetalle.objects.create(
+                pilares=pilares,
+                hostname=data.get('hostname', ''),
+                ram_actual=int(data.get('ram_actual', 0)),
+                ram_actualizada=int(data.get('ram_actualizada', 0)) if data.get('ram_actualizada') else None,
+                estatus=data.get('estatus', 'PENDIENTE'),
+                pasta_termica=data.get('pasta_termica', False),
+                mouse_nuevo=int(data.get('mouse_nuevo', 0)),
+                teclado_nuevo=int(data.get('teclado_nuevo', 0)),
+                observaciones=data.get('observaciones', ''),
+            )
+            
+            return JsonResponse({'success': True, 'id': equipo.id})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+@csrf_exempt
+@login_required
+def editar_equipo_detalle(request, equipo_id):
+    """API para editar un equipo detalle"""
+    if request.method == 'POST':
+        try:
+            equipo = EquipoDetalle.objects.get(id=equipo_id)
+            data = json.loads(request.body)
+            
+            equipo.hostname = data.get('hostname', equipo.hostname)
+            equipo.ram_actual = int(data.get('ram_actual', equipo.ram_actual))
+            equipo.ram_actualizada = int(data.get('ram_actualizada', 0)) if data.get('ram_actualizada') else None
+            equipo.estatus = data.get('estatus', equipo.estatus)
+            equipo.pasta_termica = data.get('pasta_termica', equipo.pasta_termica)
+            equipo.mouse_nuevo = int(data.get('mouse_nuevo', equipo.mouse_nuevo))
+            equipo.teclado_nuevo = int(data.get('teclado_nuevo', equipo.teclado_nuevo))
+            equipo.observaciones = data.get('observaciones', equipo.observaciones)
+            equipo.save()
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+@csrf_exempt
+@login_required
+def eliminar_equipo_detalle(request, equipo_id):
+    """API para eliminar un equipo detalle"""
+    if request.method == 'DELETE':
+        try:
+            equipo = EquipoDetalle.objects.get(id=equipo_id)
+            equipo.delete()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+# ============ IMPORTAR CSV A EQUIPOS DETALLE ============
+@csrf_exempt
+@login_required
+def importar_csv_equipos(request):
+    """Importar equipos desde CSV para un PILARES"""
+    if request.method == 'POST':
+        try:
+            import csv
+            import io
+            data = json.loads(request.body)
+            csv_data = data.get('csv_data', '')
+            clave_id = data.get('clave_id', '')
+            
+            pilares = Pilares.objects.get(clave_id=clave_id)
+            
+            # Leer CSV desde texto
+            csv_file = io.StringIO(csv_data)
+            reader = csv.DictReader(csv_file)
+            
+            creados = 0
+            actualizados = 0
+            
+            for row in reader:
+                hostname = row.get('Hostname', '').strip()
+                if not hostname:
+                    continue
+                
+                equipo, created = EquipoDetalle.objects.update_or_create(
+                    hostname=hostname,
+                    defaults={
+                        'pilares': pilares,
+                        'ram_actual': int(row.get('RAM Actual', 0) or 0),
+                        'ram_actualizada': int(row.get('RAM Actualizada', 0)) if row.get('RAM Actualizada') else None,
+                        'estatus': row.get('Estatus', 'PENDIENTE'),
+                        'pasta_termica': row.get('Pasta térmica', 'No') == 'Sí',
+                        'mouse_nuevo': int(row.get('Mouse nuevos', 0) or 0),
+                        'teclado_nuevo': int(row.get('Teclados nuevos', 0) or 0),
+                        'observaciones': row.get('Observaciones', ''),
+                    }
+                )
+                
+                if created:
+                    creados += 1
+                else:
+                    actualizados += 1
+            
+            return JsonResponse({
+                'success': True,
+                'creados': creados,
+                'actualizados': actualizados,
+                'total': creados + actualizados
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+def exportar_todos_equipos_excel(request):
+    """Genera un Excel con TODOS los equipos de TODOS los PILARES"""
+    from .models import EquipoDetalle
+    
+    # Obtener todos los equipos con sus PILARES
+    equipos = EquipoDetalle.objects.select_related('pilares').all().order_by('pilares__nombre', 'hostname')
+    
+    # Crear respuesta
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="todos_los_equipos_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Todos los Equipos"
+    
+    # Estilos
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='2C3E50', end_color='2C3E50', fill_type='solid')
+    header_alignment = Alignment(horizontal='center', vertical='center')
+    cell_alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    
+    # Encabezados
+    headers = [
+        '#', 'PILARES', 'CLAVE_ID', 'Alcaldía', 'Zona', 
+        'Hostname', 'RAM Actual', 'RAM Actualizada', 'Estatus', 
+        'Pasta Térmica', 'Mouse Nuevos', 'Teclados Nuevos', 'Observaciones'
+    ]
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+    
+    # Datos
+    for idx, equipo in enumerate(equipos, 1):
+        row = idx + 1
+        ws.cell(row=row, column=1, value=idx)
+        ws.cell(row=row, column=2, value=equipo.pilares.nombre)
+        ws.cell(row=row, column=3, value=equipo.pilares.clave_id)
+        ws.cell(row=row, column=4, value=equipo.pilares.alcaldia)
+        ws.cell(row=row, column=5, value=equipo.pilares.zona)
+        ws.cell(row=row, column=6, value=equipo.hostname)
+        ws.cell(row=row, column=7, value=equipo.ram_actual)
+        ws.cell(row=row, column=8, value=equipo.ram_actualizada or '-')
+        ws.cell(row=row, column=9, value=equipo.get_estatus_display())
+        ws.cell(row=row, column=10, value='Sí' if equipo.pasta_termica else 'No')
+        ws.cell(row=row, column=11, value=equipo.mouse_nuevo)
+        ws.cell(row=row, column=12, value=equipo.teclado_nuevo)
+        ws.cell(row=row, column=13, value=equipo.observaciones or '-')
+        
+        # Aplicar alignment
+        for col in range(1, 14):
+            ws.cell(row=row, column=col).alignment = cell_alignment
+    
+    # Ajustar ancho de columnas
+    column_widths = [4, 30, 15, 25, 15, 20, 12, 15, 18, 15, 12, 12, 40]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = width
+    
+    wb.save(response)
+    return response

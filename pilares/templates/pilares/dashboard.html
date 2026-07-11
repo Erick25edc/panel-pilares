@@ -55,18 +55,30 @@
 
         .badge-excelente {
             background: #27ae60;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
         }
 
         .badge-bueno {
             background: #3498db;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
         }
 
         .badge-regular {
             background: #f39c12;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
         }
 
         .badge-critico {
             background: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
         }
 
         .btn-editar {
@@ -138,6 +150,19 @@
 
         .dropdown-item i {
             width: 20px;
+        }
+
+        /* Animación para toast */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
     </style>
 </head>
@@ -313,7 +338,205 @@
         </div>
     </div>
 
-    <!-- Modal de edición -->
+    <!-- ============================================================
+    MODAL 1: GESTIÓN DE EQUIPOS (¡EL QUE FALTABA!)
+    ============================================================ -->
+    <div class="modal fade" id="equiposModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="equiposModalTitle">
+                        <i class="fas fa-server me-2"></i> Gestión de Equipos - <span
+                            id="pilaresNombreModal">Cargando...</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Resumen -->
+                    <div class="row mb-3" id="resumenEquipos">
+                        <div class="col-md-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0" id="total8gb">0</h4>
+                                    <small>✅ 8GB RAM</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-warning">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0" id="totalActualizados">0</h4>
+                                    <small>🟡 Actualizados</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-danger">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0" id="totalPendientes">0</h4>
+                                    <small>🔴 4GB Pendientes</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-secondary">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0" id="totalEquipos">0</h4>
+                                    <small>📊 Total equipos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <button id="btnAgregarEquipoModal" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Agregar equipo
+                            </button>
+                            <button id="btnExportarEquiposExcel" class="btn btn-info btn-sm text-white">
+                                <i class="fas fa-file-excel"></i> Exportar Excel
+                            </button>
+                            <!-- 🔥 NUEVO BOTÓN: Descargar todos los equipos -->
+                            <button id="btnDescargarTodosEquipos" class="btn btn-primary btn-sm">
+                                <i class="fas fa-download"></i> Descargar Todos
+                            </button>
+                            <button id="btnImportarCSVEquipos" class="btn btn-warning btn-sm text-dark">
+                                <i class="fas fa-upload"></i> Importar CSV
+                            </button>
+                            <span class="ms-3 text-muted" id="equiposInfo">0 equipos</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de equipos -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="equiposDetalleTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Hostname</th>
+                                    <th>RAM Actual</th>
+                                    <th>RAM Actualizada</th>
+                                    <th>Estatus</th>
+                                    <th>Pasta</th>
+                                    <th>Mouse</th>
+                                    <th>Teclado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="equiposDetalleBody">
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">Selecciona un PILARES para ver sus
+                                        equipos</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    MODAL 2: AGREGAR/EDITAR EQUIPO
+    ============================================================ -->
+    <div class="modal fade" id="editarEquipoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarEquipoModalTitle">
+                        <i class="fas fa-edit me-2"></i> <span id="editarEquipoTitle">Agregar Equipo</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editEquipoId">
+                    <input type="hidden" id="editPilaresId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hostname:</label>
+                        <input type="text" id="editHostname" class="form-control" placeholder="Ej: 001-NT-GAM-01">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">RAM Actual (GB):</label>
+                            <input type="number" id="editRamActual" class="form-control" min="0" value="4">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">RAM Actualizada (GB):</label>
+                            <input type="number" id="editRamActualizada" class="form-control" min="0"
+                                placeholder="Opcional">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Estatus:</label>
+                        <select id="editEstatus" class="form-select">
+                            <option value="PENDIENTE">⚠️ Pendiente</option>
+                            <option value="4GB">🔴 4GB</option>
+                            <option value="8GB">✅ 8GB</option>
+                            <option value="ACTUALIZADO">🟡 Actualizado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" id="editPastaTermica" class="form-check-input">
+                            <label class="form-check-label" for="editPastaTermica">✅ Pasta térmica cambiada</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Mouse nuevos:</label>
+                            <input type="number" id="editMouseNuevo" class="form-control" min="0" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Teclados nuevos:</label>
+                            <input type="number" id="editTecladoNuevo" class="form-control" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Observaciones:</label>
+                        <textarea id="editObservaciones" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="saveEquipoDetalleBtn" class="btn btn-primary">💾 Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    MODAL 3: IMPORTAR CSV
+    ============================================================ -->
+    <div class="modal fade" id="importarCSVModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-upload me-2"></i> Importar CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Pega el contenido de tu archivo CSV con los equipos.</p>
+                    <p><strong>Formato esperado:</strong> Hostname,RAM Actual,RAM Actualizada,Estatus,Pasta
+                        térmica,Mouse nuevos,Teclados nuevos,Observaciones</p>
+                    <textarea id="csvImportText" class="form-control" rows="10"
+                        placeholder="Ej:&#10;001-NT-GAM-01,8,16,8GB,Sí,2,1,Equipo principal&#10;001-NT-GAM-02,4,8,Actualizado,No,1,0"></textarea>
+                    <div class="mt-2" id="csvImportResult"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnProcesarCSV" class="btn btn-primary">📤 Procesar CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    MODAL 4: EDITAR PILARES
+    ============================================================ -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -345,8 +568,8 @@
                             class="form-control" min="0"></div>
                     <div class="col-md-6 mb-3"><label>Equipos inactivos:</label><input type="number"
                             id="editEquiposInactivos" class="form-control" min="0"></div>
-                    <div class="mb-3"><label>Observaciones:</label><textarea id="editObservaciones" class="form-control"
-                            rows="2"></textarea></div>
+                    <div class="mb-3"><label>Observaciones:</label><textarea id="editObservacionesPilares"
+                            class="form-control" rows="2"></textarea></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -356,38 +579,123 @@
         </div>
     </div>
 
+    <!-- ============================================================
+    SCRIPTS
+    ============================================================ -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
     <script>
-        // Datos desde Django
+        // ============================================================
+        // 1. CONFIGURACIÓN DE IDIOMA (evita CORS)
+        // ============================================================
+        const DATATABLES_LANG = {
+            "sProcessing": "Procesando...",
+            "sLengthMenu": "Mostrar _MENU_ registros",
+            "sZeroRecords": "No se encontraron resultados",
+            "sEmptyTable": "Ningún dato disponible en esta tabla",
+            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "sInfoPostFix": "",
+            "sSearch": "Buscar:",
+            "sUrl": "",
+            "sInfoThousands": ",",
+            "sLoadingRecords": "Cargando...",
+            "oPaginate": {
+                "sFirst": "Primero",
+                "sLast": "Último",
+                "sNext": "Siguiente",
+                "sPrevious": "Anterior"
+            },
+            "oAria": {
+                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+            }
+        };
+
+        // ============================================================
+        // 2. DATOS DESDE DJANGO
+        // ============================================================
         const allPilares = JSON.parse('{{ pilares_data_json|escapejs }}');
         const zonasData = JSON.parse('{{ zonas_data_json|escapejs }}');
 
-        let zonaChart = null, distribucionChart = null, dataTable = null;
+        // ============================================================
+        // 3. VARIABLES GLOBALES
+        // ============================================================
+        let zonaChart = null;
+        let distribucionChart = null;
+        let dataTable = null;
         let editModal = null;
+        let equiposModal = null;
+        let editarEquipoModal = null;
+        let importarCSVModal = null;
+        let currentPilaresClave = '';
+        let currentPilaresNombre = '';
 
-        const colores = { 'NORTE': '#e67e22', 'SUR': '#c0392b', 'PONIENTE': '#3498db', 'CENTRO': '#27ae60', 'ORIENTE': '#95a5a6', 'SUR PONIENTE': '#9b59b6' };
+        const colores = {
+            'NORTE': '#e67e22',
+            'SUR': '#c0392b',
+            'PONIENTE': '#3498db',
+            'CENTRO': '#27ae60',
+            'ORIENTE': '#95a5a6',
+            'SUR PONIENTE': '#9b59b6'
+        };
 
+        // ============================================================
+        // 4. FUNCIONES DE GRÁFICAS
+        // ============================================================
         function actualizarGraficas(zonaFiltro = 'TODAS') {
             let datos = zonaFiltro === 'TODAS' ? zonasData : zonasData.filter(z => z.nombre === zonaFiltro);
+
             if (zonaChart) zonaChart.destroy();
-            zonaChart = new Chart(document.getElementById('zonaChart'), {
-                type: 'bar',
-                data: { labels: datos.map(z => z.nombre), datasets: [{ label: '% Equipos 8GB', data: datos.map(z => z.porcentaje), backgroundColor: '#3498db' }] },
-                options: { responsive: true, scales: { y: { min: 0, max: 100 } } }
-            });
+            const ctxZona = document.getElementById('zonaChart');
+            if (ctxZona) {
+                zonaChart = new Chart(ctxZona, {
+                    type: 'bar',
+                    data: {
+                        labels: datos.map(z => z.nombre),
+                        datasets: [{
+                            label: '% Equipos 8GB',
+                            data: datos.map(z => z.porcentaje),
+                            backgroundColor: '#3498db'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { min: 0, max: 100 } }
+                    }
+                });
+            }
+
             if (distribucionChart) distribucionChart.destroy();
-            distribucionChart = new Chart(document.getElementById('distribucionChart'), {
-                type: 'pie',
-                data: { labels: datos.map(z => z.nombre), datasets: [{ data: datos.map(z => z.count), backgroundColor: Object.values(colores) }] }
-            });
+            const ctxDist = document.getElementById('distribucionChart');
+            if (ctxDist) {
+                distribucionChart = new Chart(ctxDist, {
+                    type: 'pie',
+                    data: {
+                        labels: datos.map(z => z.nombre),
+                        datasets: [{
+                            data: datos.map(z => z.count),
+                            backgroundColor: Object.values(colores)
+                        }]
+                    }
+                });
+            }
         }
 
+        // ============================================================
+        // 5. FUNCIONES DE TABLA
+        // ============================================================
         function inicializarTabla() {
             const esAdmin = {% if user.is_staff %} true{% else %} false{% endif %};
+
+        if ($.fn.DataTable.isDataTable('#pilaresTable')) {
+            $('#pilaresTable').DataTable().destroy();
+        }
+
         dataTable = $('#pilaresTable').DataTable({
             data: allPilares,
             columns: [
@@ -400,8 +708,10 @@
                     data: null,
                     render: (d) => {
                         const porcentaje = d.porcentaje_8gb;
-                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' : (porcentaje >= 70 ? 'badge-bueno' : (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
-                        return `<span class="badge ${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
+                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' :
+                            (porcentaje >= 70 ? 'badge-bueno' :
+                                (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
+                        return `<span class="${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
                     }
                 },
                 { data: 'equipos_inactivos', render: (d) => d || 0 },
@@ -412,110 +722,623 @@
                     data: null,
                     render: (d) => {
                         if (esAdmin) {
-                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'><i class="fas fa-edit"></i> Editar</button>`;
+                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'>
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button> 
+                                        <button class="btn-ver-equipos btn btn-sm btn-info" 
+                                                data-clave="${d.clave_id}" 
+                                                data-nombre="${d.nombre}">
+                                            <i class="fas fa-server"></i> Equipos
+                                        </button>`;
                         } else {
                             return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
                         }
                     }
                 }
             ],
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+            language: DATATABLES_LANG,
             pageLength: 15,
             order: [[1, 'asc']]
         });
-
-        $('#pilaresTable').on('click', '.btn-editar', function () {
-            const d = JSON.parse($(this).attr('data'));
-            document.getElementById('editClaveId').value = d.clave_id;
-            document.getElementById('editNombre').value = d.nombre;
-            document.getElementById('editAlcaldia').value = d.alcaldia;
-            document.getElementById('editModeloEquipo').value = d.modelo_equipo || '';
-            document.getElementById('editPasta').value = d.pasta_termica;
-            document.getElementById('editMouse').value = d.mouse_nuevos;
-            document.getElementById('editTeclados').value = d.teclados_nuevos;
-            document.getElementById('editEquipos8gb').value = d.equipos_8gb;
-            document.getElementById('editTotalEquipos').value = d.total_equipos;
-            document.getElementById('editEquiposInactivos').value = d.equipos_inactivos || 0;
-            editModal.show();
-        });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Inicializar modal
-            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        // ============================================================
+        // 6. FUNCIONES DE EQUIPOS DETALLE
+        // ============================================================
+        function cargarEquiposDetalle(clave) {
+            console.log('📡 Cargando equipos para:', clave);
 
-            // Eventos de botones
-            document.getElementById('zonaFilter').addEventListener('change', function () {
-                const zona = this.value;
-                actualizarGraficas(zona);
-                if (dataTable) {
-                    if (zona === 'TODAS') dataTable.column(3).search('').draw();
-                    else dataTable.column(3).search('^' + zona + '$', true, false).draw();
+            const tbody = document.getElementById('equiposDetalleBody');
+            if (!tbody) {
+                console.error('❌ No se encontró el cuerpo de la tabla #equiposDetalleBody');
+                return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><br>Cargando equipos...</td></tr>';
+
+            fetch(`/api/equipos-detalle/${clave}/`)
+                .then(r => {
+                    console.log('📡 Respuesta recibida');
+                    return r.json();
+                })
+                .then(data => {
+                    console.log('📊 Datos recibidos:', data.length, 'equipos');
+                    renderizarEquiposDetalle(data);
+                    actualizarResumen(data);
+                    const info = document.getElementById('equiposInfo');
+                    if (info) info.textContent = `${data.length} equipos`;
+                })
+                .catch(error => {
+                    console.error('❌ Error al cargar equipos:', error);
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">❌ Error al cargar equipos: ' + error.message + '</td></tr>';
+                });
+        }
+
+        function renderizarEquiposDetalle(data) {
+            const tbody = document.getElementById('equiposDetalleBody');
+            if (!tbody) return;
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No hay equipos registrados</td></tr>';
+                return;
+            }
+
+            let html = '';
+            data.forEach((e, idx) => {
+                const estatusBadge = {
+                    '8GB': 'bg-success',
+                    '4GB': 'bg-danger',
+                    'ACTUALIZADO': 'bg-warning text-dark',
+                    'PENDIENTE': 'bg-secondary'
+                }[e.estatus_valor] || 'bg-secondary';
+
+                const estatusIcon = {
+                    '8GB': '✅',
+                    '4GB': '🔴',
+                    'ACTUALIZADO': '🟡',
+                    'PENDIENTE': '⚠️'
+                }[e.estatus_valor] || '❓';
+
+                html += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td><code>${e.hostname}</code></td>
+                    <td>${e.ram_actual} GB</td>
+                    <td>${e.ram_actualizada !== '-' ? e.ram_actualizada + ' GB' : '-'}</td>
+                    <td><span class="badge ${estatusBadge}">${estatusIcon} ${e.estatus}</span></td>
+                    <td>${e.pasta_termica ? '✅ Sí' : '❌ No'}</td>
+                    <td>${e.mouse_nuevo}</td>
+                    <td>${e.teclado_nuevo}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary editar-equipo-detalle" data-id="${e.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger eliminar-equipo-detalle" data-id="${e.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            });
+
+            tbody.innerHTML = html;
+
+            // Eventos de edición
+            document.querySelectorAll('.editar-equipo-detalle').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const equipo = data.find(e => e.id == id);
+                    if (equipo) abrirEditarEquipo(equipo);
+                });
+            });
+
+            // Eventos de eliminación
+            document.querySelectorAll('.eliminar-equipo-detalle').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const equipo = data.find(e => e.id == id);
+                    const hostname = equipo?.hostname || 'equipo';
+                    if (confirm(`¿Eliminar el equipo ${hostname}?`)) {
+                        eliminarEquipoDetalle(id);
+                    }
+                });
+            });
+        }
+
+        function actualizarResumen(data) {
+            let total8gb = 0,
+                totalActualizados = 0,
+                totalPendientes = 0;
+            data.forEach(e => {
+                if (e.estatus_valor === '8GB') total8gb++;
+                else if (e.estatus_valor === 'ACTUALIZADO') totalActualizados++;
+                else if (e.estatus_valor === 'PENDIENTE' || e.estatus_valor === '4GB') totalPendientes++;
+            });
+
+            const elTotal8gb = document.getElementById('total8gb');
+            const elTotalAct = document.getElementById('totalActualizados');
+            const elTotalPend = document.getElementById('totalPendientes');
+            const elTotalEq = document.getElementById('totalEquipos');
+
+            if (elTotal8gb) elTotal8gb.textContent = total8gb;
+            if (elTotalAct) elTotalAct.textContent = totalActualizados;
+            if (elTotalPend) elTotalPend.textContent = totalPendientes;
+            if (elTotalEq) elTotalEq.textContent = data.length;
+        }
+
+        function abrirEditarEquipo(equipo) {
+            const isEdit = !!equipo;
+            const title = document.getElementById('editarEquipoTitle');
+            if (title) title.textContent = isEdit ? 'Editar Equipo' : 'Agregar Equipo';
+
+            const idField = document.getElementById('editEquipoId');
+            if (idField) idField.value = isEdit ? equipo.id : '';
+
+            const pilaresField = document.getElementById('editPilaresId');
+            if (pilaresField) pilaresField.value = currentPilaresClave;
+
+            const hostnameField = document.getElementById('editHostname');
+            if (hostnameField) hostnameField.value = isEdit ? equipo.hostname : '';
+
+            const ramActual = document.getElementById('editRamActual');
+            if (ramActual) ramActual.value = isEdit ? equipo.ram_actual : 4;
+
+            const ramActualizada = document.getElementById('editRamActualizada');
+            if (ramActualizada) ramActualizada.value = isEdit && equipo.ram_actualizada !== '-' ? equipo.ram_actualizada : '';
+
+            const estatus = document.getElementById('editEstatus');
+            if (estatus) estatus.value = isEdit ? equipo.estatus_valor : 'PENDIENTE';
+
+            const pasta = document.getElementById('editPastaTermica');
+            if (pasta) pasta.checked = isEdit ? equipo.pasta_termica : false;
+
+            const mouse = document.getElementById('editMouseNuevo');
+            if (mouse) mouse.value = isEdit ? equipo.mouse_nuevo : 0;
+
+            const teclado = document.getElementById('editTecladoNuevo');
+            if (teclado) teclado.value = isEdit ? equipo.teclado_nuevo : 0;
+
+            const obs = document.getElementById('editObservaciones');
+            if (obs) obs.value = isEdit ? equipo.observaciones : '';
+
+            if (editarEquipoModal) editarEquipoModal.show();
+        }
+
+        function eliminarEquipoDetalle(id) {
+            fetch(`/api/equipo-detalle/${id}/eliminar/`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('🗑️ Equipo eliminado', 'warning');
+                        cargarEquiposDetalle(currentPilaresClave);
+                    } else {
+                        alert('❌ Error: ' + data.error);
+                    }
+                });
+        }
+
+        // ============================================================
+        // 7. FUNCIONES DE TOAST
+        // ============================================================
+        function showToast(msg, type) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            const bgColor = type === 'success' ? '#27ae60' : type === 'warning' ? '#f39c12' : '#3498db';
+            toast.style.cssText = `
+                position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                background: ${bgColor}; color: white; padding: 10px 20px; border-radius: 8px;
+                z-index: 9999; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                animation: slideUp 0.3s ease;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ============================================================
+        // 8. EVENTOS DE LA TABLA (DELEGACIÓN)
+        // ============================================================
+        function configurarEventosTabla() {
+            // Evento de edición de PILARES
+            $('#pilaresTable').on('click', '.btn-editar', function () {
+                const d = JSON.parse($(this).attr('data'));
+                const claveId = document.getElementById('editClaveId');
+                const nombre = document.getElementById('editNombre');
+                const alcaldia = document.getElementById('editAlcaldia');
+                const modelo = document.getElementById('editModeloEquipo');
+                const pasta = document.getElementById('editPasta');
+                const mouse = document.getElementById('editMouse');
+                const teclados = document.getElementById('editTeclados');
+                const equipos8gb = document.getElementById('editEquipos8gb');
+                const totalEquipos = document.getElementById('editTotalEquipos');
+                const inactivos = document.getElementById('editEquiposInactivos');
+                const observaciones = document.getElementById('editObservacionesPilares');
+
+                if (claveId) claveId.value = d.clave_id;
+                if (nombre) nombre.value = d.nombre;
+                if (alcaldia) alcaldia.value = d.alcaldia;
+                if (modelo) modelo.value = d.modelo_equipo || '';
+                if (pasta) pasta.value = d.pasta_termica;
+                if (mouse) mouse.value = d.mouse_nuevos;
+                if (teclados) teclados.value = d.teclados_nuevos;
+                if (equipos8gb) equipos8gb.value = d.equipos_8gb;
+                if (totalEquipos) totalEquipos.value = d.total_equipos;
+                if (inactivos) inactivos.value = d.equipos_inactivos || 0;
+                if (observaciones) observaciones.value = d.observaciones || '';
+
+                if (editModal) editModal.show();
+            });
+
+            // Evento de ver equipos - VERSIÓN CORREGIDA
+            $('#pilaresTable').on('click', '.btn-ver-equipos', function () {
+                const clave = $(this).data('clave');
+                const nombre = $(this).data('nombre');
+
+                console.log('🔍 Clic en equipos para:', clave, nombre);
+
+                currentPilaresClave = clave;
+                currentPilaresNombre = nombre;
+
+                const nombreModal = document.getElementById('pilaresNombreModal');
+                if (nombreModal) nombreModal.textContent = nombre;
+
+                // === IMPORTANTE: Inicializar modales AQUÍ ===
+                const equiposModalElement = document.getElementById('equiposModal');
+                const editarEquipoModalElement = document.getElementById('editarEquipoModal');
+                const importarCSVModalElement = document.getElementById('importarCSVModal');
+
+                // Verificar si los modales existen en el DOM
+                console.log('📦 equiposModalElement:', equiposModalElement);
+                console.log('📦 editarEquipoModalElement:', editarEquipoModalElement);
+                console.log('📦 importarCSVModalElement:', importarCSVModalElement);
+
+                if (equiposModalElement) {
+                    if (!equiposModal) {
+                        equiposModal = new bootstrap.Modal(equiposModalElement);
+                        console.log('✅ Modal de equipos inicializado');
+                    }
+                    equiposModal.show();
+                    cargarEquiposDetalle(clave);
+                } else {
+                    console.error('❌ No se encontró el modal #equiposModal en el DOM');
+                    alert('Error: No se encontró el modal de equipos. Verifica que el HTML tenga el modal.');
+                }
+
+                if (editarEquipoModalElement && !editarEquipoModal) {
+                    editarEquipoModal = new bootstrap.Modal(editarEquipoModalElement);
+                }
+                if (importarCSVModalElement && !importarCSVModal) {
+                    importarCSVModal = new bootstrap.Modal(importarCSVModalElement);
+                }
+            });
+        }
+
+        // ============================================================
+        // 9. CONFIGURAR BOTONES DE ACCIÓN
+        // ============================================================
+        function configurarBotones() {
+            // Botón Agregar Equipo
+            const btnAgregar = document.getElementById('btnAgregarEquipoModal');
+            if (btnAgregar) {
+                btnAgregar.addEventListener('click', function () {
+                    abrirEditarEquipo(null);
+                });
+            }
+
+            // Botón Guardar Equipo
+            const btnSave = document.getElementById('saveEquipoDetalleBtn');
+            if (btnSave) {
+                btnSave.addEventListener('click', function () {
+                    const equipoId = document.getElementById('editEquipoId')?.value || '';
+                    const data = {
+                        pilares_id: document.getElementById('editPilaresId')?.value || '',
+                        hostname: document.getElementById('editHostname')?.value || '',
+                        ram_actual: document.getElementById('editRamActual')?.value || 0,
+                        ram_actualizada: document.getElementById('editRamActualizada')?.value || null,
+                        estatus: document.getElementById('editEstatus')?.value || 'PENDIENTE',
+                        pasta_termica: document.getElementById('editPastaTermica')?.checked || false,
+                        mouse_nuevo: document.getElementById('editMouseNuevo')?.value || 0,
+                        teclado_nuevo: document.getElementById('editTecladoNuevo')?.value || 0,
+                        observaciones: document.getElementById('editObservaciones')?.value || '',
+                    };
+
+                    const url = equipoId ? `/api/equipo-detalle/${equipoId}/editar/` : '/api/equipo-detalle/agregar/';
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (editarEquipoModal) editarEquipoModal.hide();
+                                showToast('✅ Equipo guardado correctamente', 'success');
+                                cargarEquiposDetalle(currentPilaresClave);
+                            } else {
+                                alert('❌ Error: ' + data.error);
+                            }
+                        });
+                });
+            }
+
+            // Botón Exportar Excel
+            const btnExportarEquipos = document.getElementById('btnExportarEquiposExcel');
+            if (btnExportarEquipos) {
+                btnExportarEquipos.addEventListener('click', function () {
+                    const equipos = document.querySelectorAll('#equiposDetalleBody tr');
+                    const data = [];
+                    equipos.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 8) {
+                            data.push({
+                                'Hostname': cells[1]?.textContent || '',
+                                'RAM Actual': cells[2]?.textContent || '',
+                                'RAM Actualizada': cells[3]?.textContent || '',
+                                'Estatus': cells[4]?.textContent || '',
+                                'Pasta térmica': cells[5]?.textContent || '',
+                                'Mouse nuevos': cells[6]?.textContent || '',
+                                'Teclados nuevos': cells[7]?.textContent || '',
+                            });
+                        }
+                    });
+
+                    if (data.length === 0) {
+                        alert('No hay datos para exportar');
+                        return;
+                    }
+
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Equipos');
+                    XLSX.writeFile(wb, `Equipos_${currentPilaresClave}_${Date.now()}.xlsx`);
+                    showToast('📥 Excel exportado', 'success');
+                });
+            }
+
+            // Botón Importar CSV
+            const btnImportar = document.getElementById('btnImportarCSVEquipos');
+            if (btnImportar) {
+                btnImportar.addEventListener('click', function () {
+                    const textArea = document.getElementById('csvImportText');
+                    const result = document.getElementById('csvImportResult');
+                    if (textArea) textArea.value = '';
+                    if (result) result.innerHTML = '';
+                    if (importarCSVModal) importarCSVModal.show();
+                });
+            }
+
+            // Botón Procesar CSV
+            const btnProcesar = document.getElementById('btnProcesarCSV');
+            if (btnProcesar) {
+                btnProcesar.addEventListener('click', function () {
+                    const csvData = document.getElementById('csvImportText')?.value || '';
+                    if (!csvData.trim()) {
+                        alert('Pega el contenido del CSV primero');
+                        return;
+                    }
+
+                    const resultDiv = document.getElementById('csvImportResult');
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="text-muted">Procesando...</div>';
+                    }
+
+                    fetch('/api/equipo-detalle/importar-csv/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            clave_id: currentPilaresClave,
+                            csv_data: csvData
+                        })
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (resultDiv) {
+                                    resultDiv.innerHTML = `
+                                    <div class="alert alert-success">
+                                        ✅ Importación completada: ${data.total} equipos procesados
+                                        (${data.creados} nuevos, ${data.actualizados} actualizados)
+                                    </div>
+                                `;
+                                }
+                                setTimeout(() => {
+                                    if (importarCSVModal) importarCSVModal.hide();
+                                    cargarEquiposDetalle(currentPilaresClave);
+                                }, 2000);
+                            } else {
+                                if (resultDiv) {
+                                    resultDiv.innerHTML = `<div class="alert alert-danger">❌ Error: ${data.error}</div>`;
+                                }
+                            }
+                        });
+                });
+            }
+        }
+
+        // ============================================================
+        // 10. CONFIGURAR BOTONES DE NAVEGACIÓN
+        // ============================================================
+        function configurarNavegacion() {
+            const navButtons = {
+                'btnMapa': '/mapa/',
+                'btnSeguimiento': '/seguimiento/',
+                'btnHistorial': '/historial/',
+                'btnIncidencias': '/incidencias/',
+                'btnMapaMobile': '/mapa/',
+                'btnSeguimientoMobile': '/seguimiento/',
+                'btnHistorialMobile': '/historial/',
+                'btnIncidenciasMobile': '/incidencias/'
+            };
+
+            Object.entries(navButtons).forEach(([id, url]) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.onclick = (e) => {
+                        if (e) e.preventDefault();
+                        window.location.href = url;
+                    };
                 }
             });
 
-            document.getElementById('btnMapa').onclick = () => window.location.href = '/mapa/';
-            document.getElementById('btnSeguimiento').onclick = () => window.location.href = '/seguimiento/';
-
-            // ========== EVENTOS DEL MENÚ MÓVIL ==========
-            document.getElementById('btnMapaMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/mapa/'; };
-            document.getElementById('btnSeguimientoMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/seguimiento/'; };
-            document.getElementById('btnHistorialMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/historial/'; };
-            document.getElementById('btnIncidenciasMobile').onclick = (e) => { e.preventDefault(); window.location.href = '/incidencias/'; };
-            document.getElementById('btnHistorial').onclick = () => window.location.href = '/historial/';
-            document.getElementById('btnIncidencias').onclick = () => window.location.href = '/incidencias/';
-
+            // Botones de admin
             {% if user.is_staff %}
-            document.getElementById('btnReportePDFMobile').onclick = (e) => { e.preventDefault(); window.open('/reporte-pdf/', '_blank'); };
-            document.getElementById('btnExportarMobile').onclick = (e) => { e.preventDefault(); document.getElementById('btnExportar').click(); };
-            {% endif %}
+            const btnPDF = document.getElementById('btnReportePDF');
+            if (btnPDF) btnPDF.onclick = () => window.open('/reporte-pdf/', '_blank');
 
-            {% if user.is_staff %}
-            document.getElementById('btnReportePDF').onclick = () => window.open('/reporte-pdf/', '_blank');
-            document.getElementById('btnExportar').onclick = () => {
-                const ws = XLSX.utils.json_to_sheet(allPilares.map(p => ({
-                    'CLAVE_ID': p.clave_id,
-                    'PILARES': p.nombre,
-                    'ALCALDIA': p.alcaldia,
-                    'ZONA': p.zona,
-                    'MODELO': p.modelo_equipo,
-                    'EQUIPOS 8GB': `${p.equipos_8gb} / ${p.total_equipos}`,
-                    'INACTIVOS': p.equipos_inactivos || 0,
-                    '% PASTA': `${p.pasta_termica}%`,
-                    'MOUSE': p.mouse_nuevos,
-                    'TECLADOS': p.teclados_nuevos
-                })));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'PILARES');
-                XLSX.writeFile(wb, `PILARES_${Date.now()}.xlsx`);
+            const btnPDFMobile = document.getElementById('btnReportePDFMobile');
+            if (btnPDFMobile) btnPDFMobile.onclick = (e) => {
+                e.preventDefault();
+                window.open('/reporte-pdf/', '_blank');
             };
-            {% endif %}
 
-            document.getElementById('saveEditBtn').onclick = () => {
-                const data = {
-                    pasta_termica: document.getElementById('editPasta').value,
-                    mouse_nuevos: document.getElementById('editMouse').value,
-                    teclados_nuevos: document.getElementById('editTeclados').value,
-                    equipos_8gb: document.getElementById('editEquipos8gb').value,
-                    total_equipos: document.getElementById('editTotalEquipos').value,
-                    equipos_inactivos: document.getElementById('editEquiposInactivos').value,
-                    modelo_equipo: document.getElementById('editModeloEquipo').value
+            const btnExportar = document.getElementById('btnExportar');
+            if (btnExportar) {
+                btnExportar.onclick = () => {
+                    if (typeof allPilares !== 'undefined') {
+                        const ws = XLSX.utils.json_to_sheet(allPilares.map(p => ({
+                            'CLAVE_ID': p.clave_id,
+                            'PILARES': p.nombre,
+                            'ALCALDIA': p.alcaldia,
+                            'ZONA': p.zona,
+                            'MODELO': p.modelo_equipo,
+                            'EQUIPOS 8GB': `${p.equipos_8gb} / ${p.total_equipos}`,
+                            'INACTIVOS': p.equipos_inactivos || 0,
+                            '% PASTA': `${p.pasta_termica}%`,
+                            'MOUSE': p.mouse_nuevos,
+                            'TECLADOS': p.teclados_nuevos
+                        })));
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'PILARES');
+                        XLSX.writeFile(wb, `PILARES_${Date.now()}.xlsx`);
+                    }
                 };
-                fetch(`/api/pilares/${document.getElementById('editClaveId').value}/editar/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success) location.reload();
-                        else alert('Error al guardar: ' + (data.error || 'Desconocido'));
-                    });
-            };
+            }
 
+            const btnExportarMobile = document.getElementById('btnExportarMobile');
+            if (btnExportarMobile) {
+                btnExportarMobile.onclick = (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnExportar');
+                    if (btn) btn.click();
+                };
+            }
+            {% endif %}
+        }
+
+        // ============================================================
+        // 11. CONFIGURAR ZONA FILTER
+        // ============================================================
+        function configurarFiltroZona() {
+            const zonaFilter = document.getElementById('zonaFilter');
+            if (zonaFilter) {
+                zonaFilter.addEventListener('change', function () {
+                    const zona = this.value;
+                    actualizarGraficas(zona);
+                    if (dataTable) {
+                        if (zona === 'TODAS') {
+                            dataTable.column(3).search('').draw();
+                        } else {
+                            dataTable.column(3).search('^' + zona + '$', true, false).draw();
+                        }
+                    }
+                });
+            }
+        }
+
+        // ============================================================
+        // 12. CONFIGURAR GUARDAR EDIT
+        // ============================================================
+        function configurarGuardarEdit() {
+            const saveBtn = document.getElementById('saveEditBtn');
+            if (saveBtn) {
+                saveBtn.onclick = () => {
+                    const data = {
+                        pasta_termica: document.getElementById('editPasta')?.value || 0,
+                        mouse_nuevos: document.getElementById('editMouse')?.value || 0,
+                        teclados_nuevos: document.getElementById('editTeclados')?.value || 0,
+                        equipos_8gb: document.getElementById('editEquipos8gb')?.value || 0,
+                        total_equipos: document.getElementById('editTotalEquipos')?.value || 0,
+                        equipos_inactivos: document.getElementById('editEquiposInactivos')?.value || 0,
+                        modelo_equipo: document.getElementById('editModeloEquipo')?.value || '',
+                        observaciones: document.getElementById('editObservacionesPilares')?.value || ''
+                    };
+                    const claveId = document.getElementById('editClaveId')?.value;
+                    if (!claveId) return;
+
+                    fetch(`/api/pilares/${claveId}/editar/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('✅ PILARES actualizado correctamente', 'success');
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                alert('Error al guardar: ' + (data.error || 'Desconocido'));
+                            }
+                        });
+                };
+            }
+        }
+
+        // ============================================================
+        // 13. INICIALIZACIÓN PRINCIPAL
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Inicializando dashboard...');
+
+            // Inicializar modal de edición
+            const editModalElement = document.getElementById('editModal');
+            if (editModalElement) {
+                editModal = new bootstrap.Modal(editModalElement);
+            }
+
+            // Configurar todo
+            configurarNavegacion();
+            configurarFiltroZona();
+            configurarGuardarEdit();
+            configurarEventosTabla();
+            configurarBotones();
+
+            // Inicializar gráficas y tabla
             actualizarGraficas('TODAS');
             inicializarTabla();
+
+            console.log('✅ Dashboard inicializado correctamente');
+
+            configurarDescargaTodosEquipos();
+            console.log('✅ Dashboard inicializado correctamente');
         });
+
+
+        // ============================================================
+        // DESCARGAR TODOS LOS EQUIPOS (desde el modal)
+        // ============================================================
+        function configurarDescargaTodosEquipos() {
+            const btnDescargarTodos = document.getElementById('btnDescargarTodosEquipos');
+            if (btnDescargarTodos) {
+                btnDescargarTodos.addEventListener('click', function () {
+                    // Mostrar estado de carga
+                    const originalHtml = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+                    this.disabled = true;
+
+                    // Abrir en nueva pestaña para descarga
+                    window.open('/exportar-todos-equipos-excel/', '_blank');
+
+                    // Restaurar botón después de 3 segundos
+                    setTimeout(() => {
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                    }, 3000);
+                });
+            }
+        }
     </script>
 </body>
 

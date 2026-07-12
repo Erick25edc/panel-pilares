@@ -120,6 +120,7 @@
             align-items: center;
         }
 
+        /* ========== ESTILOS RESPONSIVOS PARA TABLA ========== */
         @media (max-width: 768px) {
             .desktop-buttons {
                 display: none !important;
@@ -142,6 +143,107 @@
                 padding: 4px 8px;
                 font-size: 0.75rem;
             }
+
+            /* ===== TABLA RESPONSIVA ===== */
+            #pilaresTable {
+                font-size: 11px !important;
+            }
+
+            #pilaresTable thead th,
+            #pilaresTable tbody td {
+                padding: 4px 6px !important;
+                white-space: nowrap;
+            }
+
+            /* Tarjetas KPI en móvil - 2 columnas */
+            .row.mb-4 .col-md-3 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+                padding: 0 5px !important;
+            }
+
+            .kpi-card {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .kpi-value {
+                font-size: 24px !important;
+            }
+
+            .kpi-label {
+                font-size: 11px !important;
+            }
+
+            /* Botones de acción en móvil */
+            .btn-sm {
+                font-size: 10px !important;
+                padding: 2px 6px !important;
+            }
+
+            /* Badges en móvil */
+            .badge {
+                font-size: 9px !important;
+                padding: 2px 6px !important;
+            }
+
+            /* Ocultar columnas menos importantes en móvil */
+            #pilaresTable .col-modelo,
+            #pilaresTable .col-inactivos,
+            #pilaresTable .col-pasta {
+                display: none !important;
+            }
+
+            /* DataTables en móvil */
+            .dataTables_wrapper .dataTables_filter {
+                float: none !important;
+                text-align: center !important;
+                margin-bottom: 10px !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                width: 80% !important;
+                margin-left: 0 !important;
+            }
+
+            .dataTables_wrapper .dataTables_length {
+                float: none !important;
+                text-align: center !important;
+                margin-bottom: 10px !important;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none !important;
+                text-align: center !important;
+                margin-top: 10px !important;
+            }
+
+            /* Ocultar scroll horizontal en el body */
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Teléfonos muy pequeños */
+            #pilaresTable {
+                font-size: 9px !important;
+            }
+
+            #pilaresTable thead th,
+            #pilaresTable tbody td {
+                padding: 2px 4px !important;
+            }
+
+            .kpi-value {
+                font-size: 18px !important;
+            }
+
+            .row.mb-4 .col-md-3 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
         }
 
         .dropdown-menu-dark .dropdown-item:hover {
@@ -163,6 +265,30 @@
                 opacity: 1;
                 transform: translateX(-50%) translateY(0);
             }
+        }
+
+        /* ========== ESTILO PARA DESPLAZAMIENTO SUAVE ========== */
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
@@ -240,25 +366,25 @@
     <div class="container-fluid mt-4">
         <!-- Tarjetas KPI -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-3 col-6">
                 <div class="kpi-card">
                     <div class="kpi-value">{{ total_pilares }}</div>
                     <div class="kpi-label"><i class="fas fa-building"></i> Total PILARES</div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 col-6">
                 <div class="kpi-card">
                     <div class="kpi-value">{{ total_equipos_8gb }}</div>
-                    <div class="kpi-label"><i class="fas fa-microchip"></i> Equipos 8GB RAM</div>
+                    <div class="kpi-label"><i class="fas fa-microchip"></i> Equipos 8GB</div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 col-6">
                 <div class="kpi-card">
                     <div class="kpi-value">{{ total_equipos }}</div>
                     <div class="kpi-label"><i class="fas fa-desktop"></i> Total Equipos</div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 col-6">
                 <div class="kpi-card">
                     <div class="kpi-value">{{ porcentaje_general }}%</div>
                     <div class="kpi-label"><i class="fas fa-chart-line"></i> % Equipos 8GB</div>
@@ -314,18 +440,18 @@
         <div class="card">
             <div class="card-header"><i class="fas fa-list"></i> Listado de PILARES</div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table id="pilaresTable" class="table table-striped" style="width:100%">
+                <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table id="pilaresTable" class="table table-striped table-hover" style="width:100%; min-width: 800px;">
                         <thead>
                             <tr>
                                 <th>Clave</th>
                                 <th>PILARES</th>
                                 <th>Alcaldía</th>
                                 <th>Zona</th>
-                                <th>Modelo</th>
+                                <th class="col-modelo d-none d-md-table-cell">Modelo</th>
                                 <th>8GB / TOTAL</th>
-                                <th>Inactivos</th>
-                                <th>% Pasta</th>
+                                <th class="col-inactivos d-none d-sm-table-cell">Inactivos</th>
+                                <th class="col-pasta d-none d-lg-table-cell">% Pasta</th>
                                 <th>Mouse</th>
                                 <th>Teclados</th>
                                 <th>Acciones</th>
@@ -339,7 +465,7 @@
     </div>
 
     <!-- ============================================================
-    MODAL 1: GESTIÓN DE EQUIPOS (¡EL QUE FALTABA!)
+    MODAL 1: GESTIÓN DE EQUIPOS
     ============================================================ -->
     <div class="modal fade" id="equiposModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -354,7 +480,7 @@
                 <div class="modal-body">
                     <!-- Resumen -->
                     <div class="row mb-3" id="resumenEquipos">
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="card text-white bg-success">
                                 <div class="card-body text-center">
                                     <h4 class="mb-0" id="total8gb">0</h4>
@@ -362,7 +488,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="card text-white bg-warning">
                                 <div class="card-body text-center">
                                     <h4 class="mb-0" id="totalActualizados">0</h4>
@@ -370,7 +496,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="card text-white bg-danger">
                                 <div class="card-body text-center">
                                     <h4 class="mb-0" id="totalPendientes">0</h4>
@@ -378,7 +504,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="card text-white bg-secondary">
                                 <div class="card-body text-center">
                                     <h4 class="mb-0" id="totalEquipos">0</h4>
@@ -390,21 +516,20 @@
 
                     <!-- Botones de acción -->
                     <div class="row mb-3">
-                        <div class="col-12">
+                        <div class="col-12 d-flex flex-wrap gap-1">
                             <button id="btnAgregarEquipoModal" class="btn btn-success btn-sm">
-                                <i class="fas fa-plus"></i> Agregar equipo
+                                <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Agregar</span>
                             </button>
                             <button id="btnExportarEquiposExcel" class="btn btn-info btn-sm text-white">
-                                <i class="fas fa-file-excel"></i> Exportar Excel
+                                <i class="fas fa-file-excel"></i> <span class="d-none d-sm-inline">Exportar</span>
                             </button>
-                            <!-- 🔥 NUEVO BOTÓN: Descargar todos los equipos -->
                             <button id="btnDescargarTodosEquipos" class="btn btn-primary btn-sm">
-                                <i class="fas fa-download"></i> Descargar Todos
+                                <i class="fas fa-download"></i> <span class="d-none d-sm-inline">Descargar Todos</span>
                             </button>
                             <button id="btnImportarCSVEquipos" class="btn btn-warning btn-sm text-dark">
-                                <i class="fas fa-upload"></i> Importar CSV
+                                <i class="fas fa-upload"></i> <span class="d-none d-sm-inline">Importar CSV</span>
                             </button>
-                            <span class="ms-3 text-muted" id="equiposInfo">0 equipos</span>
+                            <span class="ms-2 text-muted" id="equiposInfo">0 equipos</span>
                         </div>
                     </div>
 
@@ -692,54 +817,69 @@
         function inicializarTabla() {
             const esAdmin = {% if user.is_staff %} true{% else %} false{% endif %};
 
-        if ($.fn.DataTable.isDataTable('#pilaresTable')) {
-            $('#pilaresTable').DataTable().destroy();
-        }
+            if ($.fn.DataTable.isDataTable('#pilaresTable')) {
+                $('#pilaresTable').DataTable().destroy();
+            }
 
-        dataTable = $('#pilaresTable').DataTable({
-            data: allPilares,
-            columns: [
-                { data: 'clave_id' },
-                { data: 'nombre' },
-                { data: 'alcaldia' },
-                { data: 'zona' },
-                { data: 'modelo_equipo' },
-                {
-                    data: null,
-                    render: (d) => {
-                        const porcentaje = d.porcentaje_8gb;
-                        let badgeClass = porcentaje >= 85 ? 'badge-excelente' :
-                            (porcentaje >= 70 ? 'badge-bueno' :
-                                (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
-                        return `<span class="${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
-                    }
-                },
-                { data: 'equipos_inactivos', render: (d) => d || 0 },
-                { data: 'pasta_termica', render: (d) => `${d}%` },
-                { data: 'mouse_nuevos' },
-                { data: 'teclados_nuevos' },
-                {
-                    data: null,
-                    render: (d) => {
-                        if (esAdmin) {
-                            return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'>
-                                            <i class="fas fa-edit"></i> Editar
+            dataTable = $('#pilaresTable').DataTable({
+                data: allPilares,
+                columns: [
+                    { data: 'clave_id' },
+                    { data: 'nombre' },
+                    { data: 'alcaldia' },
+                    { data: 'zona' },
+                    {
+                        data: 'modelo_equipo',
+                        className: 'd-none d-md-table-cell'
+                    },
+                    {
+                        data: null,
+                        render: (d) => {
+                            const porcentaje = d.porcentaje_8gb;
+                            let badgeClass = porcentaje >= 85 ? 'badge-excelente' :
+                                (porcentaje >= 70 ? 'badge-bueno' :
+                                    (porcentaje >= 50 ? 'badge-regular' : 'badge-critico'));
+                            return `<span class="${badgeClass}">${d.equipos_8gb} / ${d.total_equipos}</span>`;
+                        }
+                    },
+                    {
+                        data: 'equipos_inactivos',
+                        render: (d) => d || 0,
+                        className: 'd-none d-sm-table-cell'
+                    },
+                    {
+                        data: 'pasta_termica',
+                        render: (d) => `${d}%`,
+                        className: 'd-none d-lg-table-cell'
+                    },
+                    { data: 'mouse_nuevos' },
+                    { data: 'teclados_nuevos' },
+                    {
+                        data: null,
+                        render: (d) => {
+                            if (esAdmin) {
+                                return `<button class="btn-editar btn btn-sm btn-primary" data='${JSON.stringify(d)}'>
+                                            <i class="fas fa-edit"></i> 
+                                            <span class="d-none d-sm-inline">Editar</span>
                                         </button> 
                                         <button class="btn-ver-equipos btn btn-sm btn-info" 
                                                 data-clave="${d.clave_id}" 
                                                 data-nombre="${d.nombre}">
-                                            <i class="fas fa-server"></i> Equipos
+                                            <i class="fas fa-server"></i> 
+                                            <span class="d-none d-md-inline">Equipos</span>
                                         </button>`;
-                        } else {
-                            return `<span class="text-muted"><i class="fas fa-lock"></i> Solo admin</span>`;
+                            } else {
+                                return `<span class="text-muted"><i class="fas fa-lock"></i></span>`;
+                            }
                         }
                     }
-                }
-            ],
-            language: DATATABLES_LANG,
-            pageLength: 15,
-            order: [[1, 'asc']]
-        });
+                ],
+                language: DATATABLES_LANG,
+                pageLength: 15,
+                order: [[1, 'asc']],
+                responsive: true,
+                autoWidth: false
+            });
         }
 
         // ============================================================
@@ -825,7 +965,7 @@
 
             // Eventos de edición
             document.querySelectorAll('.editar-equipo-detalle').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
                     const id = this.dataset.id;
                     const equipo = data.find(e => e.id == id);
                     if (equipo) abrirEditarEquipo(equipo);
@@ -834,7 +974,7 @@
 
             // Eventos de eliminación
             document.querySelectorAll('.eliminar-equipo-detalle').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
                     const id = this.dataset.id;
                     const equipo = data.find(e => e.id == id);
                     const hostname = equipo?.hostname || 'equipo';
@@ -906,9 +1046,9 @@
 
         function eliminarEquipoDetalle(id) {
             fetch(`/api/equipo-detalle/${id}/eliminar/`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            })
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -942,7 +1082,7 @@
         // ============================================================
         function configurarEventosTabla() {
             // Evento de edición de PILARES
-            $('#pilaresTable').on('click', '.btn-editar', function () {
+            $('#pilaresTable').on('click', '.btn-editar', function() {
                 const d = JSON.parse($(this).attr('data'));
                 const claveId = document.getElementById('editClaveId');
                 const nombre = document.getElementById('editNombre');
@@ -971,8 +1111,8 @@
                 if (editModal) editModal.show();
             });
 
-            // Evento de ver equipos - VERSIÓN CORREGIDA
-            $('#pilaresTable').on('click', '.btn-ver-equipos', function () {
+            // Evento de ver equipos
+            $('#pilaresTable').on('click', '.btn-ver-equipos', function() {
                 const clave = $(this).data('clave');
                 const nombre = $(this).data('nombre');
 
@@ -984,15 +1124,9 @@
                 const nombreModal = document.getElementById('pilaresNombreModal');
                 if (nombreModal) nombreModal.textContent = nombre;
 
-                // === IMPORTANTE: Inicializar modales AQUÍ ===
                 const equiposModalElement = document.getElementById('equiposModal');
                 const editarEquipoModalElement = document.getElementById('editarEquipoModal');
                 const importarCSVModalElement = document.getElementById('importarCSVModal');
-
-                // Verificar si los modales existen en el DOM
-                console.log('📦 equiposModalElement:', equiposModalElement);
-                console.log('📦 editarEquipoModalElement:', editarEquipoModalElement);
-                console.log('📦 importarCSVModalElement:', importarCSVModalElement);
 
                 if (equiposModalElement) {
                     if (!equiposModal) {
@@ -1003,7 +1137,6 @@
                     cargarEquiposDetalle(clave);
                 } else {
                     console.error('❌ No se encontró el modal #equiposModal en el DOM');
-                    alert('Error: No se encontró el modal de equipos. Verifica que el HTML tenga el modal.');
                 }
 
                 if (editarEquipoModalElement && !editarEquipoModal) {
@@ -1022,7 +1155,7 @@
             // Botón Agregar Equipo
             const btnAgregar = document.getElementById('btnAgregarEquipoModal');
             if (btnAgregar) {
-                btnAgregar.addEventListener('click', function () {
+                btnAgregar.addEventListener('click', function() {
                     abrirEditarEquipo(null);
                 });
             }
@@ -1030,7 +1163,7 @@
             // Botón Guardar Equipo
             const btnSave = document.getElementById('saveEquipoDetalleBtn');
             if (btnSave) {
-                btnSave.addEventListener('click', function () {
+                btnSave.addEventListener('click', function() {
                     const equipoId = document.getElementById('editEquipoId')?.value || '';
                     const data = {
                         pilares_id: document.getElementById('editPilaresId')?.value || '',
@@ -1047,10 +1180,10 @@
                     const url = equipoId ? `/api/equipo-detalle/${equipoId}/editar/` : '/api/equipo-detalle/agregar/';
 
                     fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    })
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        })
                         .then(r => r.json())
                         .then(data => {
                             if (data.success) {
@@ -1067,7 +1200,7 @@
             // Botón Exportar Excel
             const btnExportarEquipos = document.getElementById('btnExportarEquiposExcel');
             if (btnExportarEquipos) {
-                btnExportarEquipos.addEventListener('click', function () {
+                btnExportarEquipos.addEventListener('click', function() {
                     const equipos = document.querySelectorAll('#equiposDetalleBody tr');
                     const data = [];
                     equipos.forEach(row => {
@@ -1101,7 +1234,7 @@
             // Botón Importar CSV
             const btnImportar = document.getElementById('btnImportarCSVEquipos');
             if (btnImportar) {
-                btnImportar.addEventListener('click', function () {
+                btnImportar.addEventListener('click', function() {
                     const textArea = document.getElementById('csvImportText');
                     const result = document.getElementById('csvImportResult');
                     if (textArea) textArea.value = '';
@@ -1113,7 +1246,7 @@
             // Botón Procesar CSV
             const btnProcesar = document.getElementById('btnProcesarCSV');
             if (btnProcesar) {
-                btnProcesar.addEventListener('click', function () {
+                btnProcesar.addEventListener('click', function() {
                     const csvData = document.getElementById('csvImportText')?.value || '';
                     if (!csvData.trim()) {
                         alert('Pega el contenido del CSV primero');
@@ -1126,13 +1259,13 @@
                     }
 
                     fetch('/api/equipo-detalle/importar-csv/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            clave_id: currentPilaresClave,
-                            csv_data: csvData
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                clave_id: currentPilaresClave,
+                                csv_data: csvData
+                            })
                         })
-                    })
                         .then(r => r.json())
                         .then(data => {
                             if (data.success) {
@@ -1234,7 +1367,7 @@
         function configurarFiltroZona() {
             const zonaFilter = document.getElementById('zonaFilter');
             if (zonaFilter) {
-                zonaFilter.addEventListener('change', function () {
+                zonaFilter.addEventListener('change', function() {
                     const zona = this.value;
                     actualizarGraficas(zona);
                     if (dataTable) {
@@ -1269,10 +1402,10 @@
                     if (!claveId) return;
 
                     fetch(`/api/pilares/${claveId}/editar/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    })
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        })
                         .then(r => r.json())
                         .then(data => {
                             if (data.success) {
@@ -1287,9 +1420,30 @@
         }
 
         // ============================================================
-        // 13. INICIALIZACIÓN PRINCIPAL
+        // 13. DESCARGAR TODOS LOS EQUIPOS (desde el modal)
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function () {
+        function configurarDescargaTodosEquipos() {
+            const btnDescargarTodos = document.getElementById('btnDescargarTodosEquipos');
+            if (btnDescargarTodos) {
+                btnDescargarTodos.addEventListener('click', function() {
+                    const originalHtml = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+                    this.disabled = true;
+
+                    window.open('/exportar-todos-equipos-excel/', '_blank');
+
+                    setTimeout(() => {
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                    }, 3000);
+                });
+            }
+        }
+
+        // ============================================================
+        // 14. INICIALIZACIÓN PRINCIPAL
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Inicializando dashboard...');
 
             // Inicializar modal de edición
@@ -1304,41 +1458,14 @@
             configurarGuardarEdit();
             configurarEventosTabla();
             configurarBotones();
+            configurarDescargaTodosEquipos();
 
             // Inicializar gráficas y tabla
             actualizarGraficas('TODAS');
             inicializarTabla();
 
             console.log('✅ Dashboard inicializado correctamente');
-
-            configurarDescargaTodosEquipos();
-            console.log('✅ Dashboard inicializado correctamente');
         });
-
-
-        // ============================================================
-        // DESCARGAR TODOS LOS EQUIPOS (desde el modal)
-        // ============================================================
-        function configurarDescargaTodosEquipos() {
-            const btnDescargarTodos = document.getElementById('btnDescargarTodosEquipos');
-            if (btnDescargarTodos) {
-                btnDescargarTodos.addEventListener('click', function () {
-                    // Mostrar estado de carga
-                    const originalHtml = this.innerHTML;
-                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
-                    this.disabled = true;
-
-                    // Abrir en nueva pestaña para descarga
-                    window.open('/exportar-todos-equipos-excel/', '_blank');
-
-                    // Restaurar botón después de 3 segundos
-                    setTimeout(() => {
-                        this.innerHTML = originalHtml;
-                        this.disabled = false;
-                    }, 3000);
-                });
-            }
-        }
     </script>
 </body>
 
